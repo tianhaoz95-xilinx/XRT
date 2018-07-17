@@ -176,6 +176,8 @@ namespace xocl {
       return mAccelProfilingNumberSlots;
     if (type == XCL_PERF_MON_STALL)
       return mStallProfilingNumberSlots;
+    if (type == XCL_PERF_MON_ILA)
+      return mILADebugNumberSlots;
     if (type == XCL_PERF_MON_HOST) {
       uint32_t count = 0;
       for (unsigned int i=0; i < mMemoryProfilingNumberSlots; i++) {
@@ -194,6 +196,9 @@ namespace xocl {
     }
     if (type == XCL_PERF_MON_ACCEL) {
       str = (slotnum < XSAM_MAX_NUMBER_SLOTS) ? mAccelMonSlotName[slotnum] : "";
+    }
+    if (type == XCL_PERF_MON_ILA) {
+      str = (slotnum < XSAM_MAX_NUMBER_SLOTS) ? mILADebugSlotName[slotnum] : "";
     }
     strncpy(slotName, str.c_str(), length);
   }
