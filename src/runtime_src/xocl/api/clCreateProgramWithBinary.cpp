@@ -138,6 +138,7 @@ clCreateProgramWithBinary(cl_context                      context ,
     try {
       loadProgramBinary(program.get(),xocl(device));
       xocl::assign(&binary_status[idx++],CL_SUCCESS);
+      xocl::debug::debug_ila(xocl(device));
     }
     catch (const xocl::error& ex) {
       xocl::assign(&binary_status[idx],CL_INVALID_BINARY);
