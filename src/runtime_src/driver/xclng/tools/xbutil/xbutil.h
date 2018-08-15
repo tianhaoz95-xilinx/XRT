@@ -15,8 +15,8 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-#ifndef XBSAK_H
-#define XBSAK_H
+#ifndef XBUTIL_H
+#define XBUTIL_H
 
 #include <getopt.h>
 #include <dlfcn.h>
@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <climits>
 #include <cstring>
 #include <cstddef>
 #include <cctype>
@@ -89,9 +90,8 @@ enum command {
     MEM,
     DD,
     STATUS,
-    VALIDATE,
     CMD_MAX,
-	POWER
+	  POWER
 };
 enum subcommand {
     MEM_READ = 0,
@@ -130,8 +130,7 @@ static const std::pair<std::string, command> map_pairs[] = {
     std::make_pair("mem", MEM),
     std::make_pair("dd", DD),
     std::make_pair("status", STATUS),
-    std::make_pair("validate", VALIDATE),
-	std::make_pair("power", POWER)
+	  std::make_pair("power", POWER)
 };
 
 static const std::pair<std::string, subcommand> subcmd_pairs[] = {
@@ -299,7 +298,8 @@ public:
 
         ss << std::setw(16) << "Power" << "\n";
         power = m_devinfo->mPexCurr*m_devinfo->m12VPex;
-        if(m_devinfo->mPexCurr != XCL_INVALID_SENSOR_VAL && m_devinfo->m12VPex != XCL_INVALID_SENSOR_VAL){
+        if(m_devinfo->mPexCurr != XCL_INVALID_SENSOR_VAL && m_devinfo->mPexCurr != XCL_NO_SENSOR_DEV_LL 
+           && m_devinfo->m12VPex != XCL_INVALID_SENSOR_VAL && m_devinfo->m12VPex != XCL_NO_SENSOR_DEV_S){
             ss << std::setw(16) << std::to_string((float)power/1000000).substr(0,4)+"W" << "\n";
         }
         else
@@ -314,7 +314,7 @@ public:
         ss << std::left << "\n";
         unsigned i;
 
-        if(m_devinfo->mSE98Temp[0]!=0){
+        if(m_devinfo->mSE98Temp[0]!=XCL_INVALID_SENSOR_VAL && (unsigned short)m_devinfo->mSE98Temp[0]!=XCL_NO_SENSOR_DEV_S){
             for(i= 0; i < 3; ++i){
                 ss << std::setw(16) << "SE98 Temp"+std::to_string(i);
                 subss << std::left << std::setw(16) << std::to_string(m_devinfo->mSE98Temp[i]).substr(0,3)+" C";
@@ -604,7 +604,7 @@ public:
 
                 ss << std::left << std::setw(12) << str;
  //               ss << "0x" << std::setw(14) << std::hex << map->m_mem_data[ i ].m_base_address;          // print base address
-                if(m_devinfo->mDimmTemp[i]!=XCL_INVALID_SENSOR_VAL && (unsigned short)m_devinfo->mDimmTemp[i]!=(XCL_NO_SENSOR_DEV & 0xffff) && i < 4)
+                if(m_devinfo->mDimmTemp[i]!=XCL_INVALID_SENSOR_VAL && (unsigned short)m_devinfo->mDimmTemp[i]!= XCL_NO_SENSOR_DEV_S && i < 4)
                     ss << std::setw(12) << std::to_string(m_devinfo->mDimmTemp[i]) + " C";
                 else
                     ss << std::setw(12) << "Not Supp";
@@ -625,27 +625,6 @@ public:
             ss << "  Chan[" << i << "].c2h:  " << unitConvert(devstat.c2h[i]) << "\n";
         }
         lines.push_back(ss.str());
-    }
-
-    /*
-     * validate
-     */
-    int validate()
-    {
-        std::vector<ip_data> computeUnits;
-        int retVal = getComputeUnits( computeUnits );
-        if( retVal < 0 ) {
-            std::cout << "WARNING: 'ip_layout' invalid. Has the bitstream been loaded? See 'xbutil program'.\n";
-            return retVal;
-        }
-        unsigned buf[ 16 ];
-        for( unsigned int i = 0; i < computeUnits.size(); i++ ) {
-            xclRead(m_handle, XCL_ADDR_KERNEL_CTRL, computeUnits.at( i ).m_base_address, &buf, 16);
-            if (!((buf[0] == 0x0) || (buf[0] == 0x4) || (buf[0] == 0x6))) {
-                return -EBUSY;
-            }
-        }
-        return 0;
     }
 
     /*
@@ -831,6 +810,9 @@ public:
      * TODO: Refactor this function to be much shorter.
      */
     int dmatest(size_t blockSize) {
+        if (blockSize == 0)
+            blockSize = 0x200000; // Default block size
+
         std::cout << "Total DDR size: " << m_devinfo.mDDRSize/(1024 * 1024) << " MB\n";
         unsigned numDDR = m_devinfo.mDDRBankCount;
         bool isAREDevice = false;
@@ -1116,16 +1098,19 @@ public:
     int usageInfo(xclDeviceUsage& devstat) const {
         return xclGetUsageInfo(m_handle, &devstat);
     }
+
     int deviceInfo(xclDeviceInfo2& devinfo) const {
         return xclGetDeviceInfo2(m_handle, &devinfo);
     }
+
+    int validate();
 };
 
 void printHelp(const std::string& exe);
-int xclXbsak(int argc, char *argv[]);
 int xclTop(int argc, char *argv[]);
+int xclValidate(int argc, char *argv[]);
 std::unique_ptr<xcldev::device> xclGetDevice(unsigned index);
 
 } // end namespace xcldev
 
-#endif /* XBSAK_H */
+#endif /* XBUTIL_H */
