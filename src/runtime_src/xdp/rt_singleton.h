@@ -148,7 +148,7 @@ namespace XCL {
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
 
-    PowerMonitor* pm;
+    PowerProfile* powerProfile;
   };
 };
 

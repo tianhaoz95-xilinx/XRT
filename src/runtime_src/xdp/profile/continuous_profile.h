@@ -18,8 +18,10 @@
 #define __XILINX_CONTINUOUS_PROFILING
 
 #include "rt_profile_writers.h"
+#include "xclperf.h"
+#include "xocl/core/device.h"
+#include "xocl/core/platform.h"
 
-#include <unordered_map>
 #include <vector>
 #include <string>
 #include <thread>
@@ -80,31 +82,27 @@ private:
 
 class PowerMonitor : public SamplingMonitor {
 public:
-	PowerMonitor(std::string dump_filename_in, int freq_in, int device_idx, std::string logfile):SamplingMonitor(freq_in) {
-		dump_filename = dump_filename_in;
-	}
+	PowerMonitor(int freq_in, xocl::device* device_in);
 	std::string get_id() {return "power_monitor";};
 private:
-	std::unordered_map<std::string, float> readPowerStatus();
-	float getFakeReading(int HI, int LO);
-	void outputPowerStatus(std::unordered_map<std::string, float>& status);
+	XclPowerInfo readPowerStatus();
+	void outputPowerStatus(XclPowerInfo& status);
 protected:
 	void sampleOnce() override;
 	void willLaunch() override;
 	void didTerminate() override;
 private:
-	std::string dump_filename;
+	xocl::device* device;
 	std::ofstream power_dump_file;
 };
 
-class ContinuousProfile {
+class PowerProfile {
 public:
-	ContinuousProfile();
-	~ContinuousProfile();
-	void launchMonitors(std::vector<BaseMonitor*> monitors);
-	void terminateMonitors(std::vector<std::string>& monitor_ids);
+	PowerProfile(std::shared_ptr<xocl::platform> platform);
+	void launch();
+	void terminate();
 private:
-	std::unordered_map<std::string, BaseMonitor*> monitor_dict;
+	std::vector<BaseMonitor*> powerMonitors;
 };
 
 }

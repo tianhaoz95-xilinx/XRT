@@ -103,6 +103,12 @@ public:
     return m_hal->getAlignment();
   }
 
+  XclPowerInfo
+  getPowerInfo()
+  {
+    return m_hal->getPowerInfo();
+  }
+
   /**
    * @return
    *   List of clock frequency from device info

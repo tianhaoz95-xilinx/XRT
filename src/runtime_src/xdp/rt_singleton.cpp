@@ -77,21 +77,25 @@ namespace XCL {
     if (applicationProfilingOn()) {
       XCL::register_xocl_profile_callbacks();
     }
+
+    std::cout << "before constructing power profile" << std::endl;
+    powerProfile = new PowerProfile(Platform);
+    std::cout << "before launching power profile" << std::endl;
+    powerProfile->launch();
+    std::cout << "after launching power profile" << std::endl;
+
 #ifdef PMD_OCL
     return;
 #endif
 
     gActive = true;
 
-    pm = new PowerMonitor("power_dump.csv", 10, 0, "power.log");
-    pm->launch();
-
   };
 
   RTSingleton::~RTSingleton() {
     gActive = false;
 
-    pm->terminate();
+    powerProfile->terminate();
 
     endProfiling();
 
@@ -100,7 +104,7 @@ namespace XCL {
     // Destruct in reverse order of construction
     delete ProfileMgr;
     delete DebugMgr;
-    delete pm;
+    delete powerProfile;
   }
 
   // Kick off profiling and open writers

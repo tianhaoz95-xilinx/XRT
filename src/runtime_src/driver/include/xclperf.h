@@ -398,7 +398,42 @@ typedef struct {
 } xclTraceResultsVector;
 
 typedef struct {
-
-} xclPowerStatus;
+  short mOnChipTemp;
+  short mFanTemp;
+  unsigned short  mVInt;
+  unsigned short  mVAux;
+  unsigned short  mVBram;
+  float mCurrent;
+  unsigned short mNumClocks;
+  unsigned short mFanSpeed;
+  bool mMigCalib;
+  unsigned long long mXMCVersion;
+  unsigned short m12VPex;
+  unsigned short m12VAux;
+  unsigned long long mPexCurr;
+  unsigned long long mAuxCurr;
+  unsigned short mFanRpm;
+  short mDimmTemp[4];
+  short mSE98Temp[4];
+  unsigned short m3v3Pex;
+  unsigned short m3v3Aux;
+  unsigned short mDDRVppBottom;
+  unsigned short mDDRVppTop;
+  unsigned short mSys5v5;
+  unsigned short m1v2Top;
+  unsigned short m1v8Top;
+  unsigned short m0v85;
+  unsigned short mMgt0v9;
+  unsigned short m12vSW;
+  unsigned short mMgtVtt;
+  unsigned short m1v2Bottom;
+  unsigned long long mDriverVersion;
+  unsigned mPciSlot;
+  bool mIsXPR;
+  unsigned long long mTimeStamp;
+  char mFpga[256];
+  unsigned short mPCIeLinkWidthMax;
+  unsigned short mPCIeLinkSpeedMax;
+} XclPowerInfo;
 
 #endif

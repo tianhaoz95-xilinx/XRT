@@ -163,6 +163,12 @@ public:
     return get_name() + "-" + std::to_string(m_uid);
   }
 
+  XclPowerInfo
+  get_power_info()
+  {
+    return m_xdevice->getPowerInfo();
+  }
+
   /**
    * Get the number of DDR memory banks on the current device
    *

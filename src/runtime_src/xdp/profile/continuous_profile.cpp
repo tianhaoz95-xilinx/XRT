@@ -59,6 +59,11 @@ void SamplingMonitor::thread_func(int id) {
 	didSample();
 }
 
+PowerMonitor::PowerMonitor(int freq_in, xocl::device* device_in)
+:SamplingMonitor(freq_in) {
+	device = device_in;
+}
+
 void PowerMonitor::sampleOnce() {
 	auto status = readPowerStatus();
 	outputPowerStatus(status);
@@ -68,35 +73,48 @@ void PowerMonitor::didTerminate() {
 	power_dump_file.close();
 }
 
-float PowerMonitor::getFakeReading(int HI, int LO) {
-	return LO+static_cast<float>(rand())/(static_cast<float>(RAND_MAX/(HI-LO)));
-}
-
 void PowerMonitor::willLaunch() {
+	std::string dump_filename = "power-trace-"+device->get_unique_name()+".csv";
+	std::cout << "open " << dump_filename << std::endl;
+	power_dump_file.open(dump_filename, std::ofstream::out | std::ofstream::trunc);
+	power_dump_file.close();
 	power_dump_file.open(dump_filename, std::ofstream::app);
 	power_dump_file << "Timestamp,FPGA Power Consumption,Board Power Consumption" << std::endl;
 	power_dump_file.flush();
 }
 
-std::unordered_map<std::string, float> PowerMonitor::readPowerStatus() {
-	std::unordered_map<std::string, float> res;
-	float vccint = getFakeReading(1, 10);
-	float vcc12v = getFakeReading(1, 10);
-	float vcc12v_aux = getFakeReading(1, 10);
-	float v3_aux = getFakeReading(1, 10);
-	res["VCCINT"] = vccint;
-	res["VCC12V"] = vcc12v;
-	res["VCC12V_AUX"] = vcc12v_aux;
-	res["V3_AUX"] = v3_aux;
-	return res;
+XclPowerInfo PowerMonitor::readPowerStatus() {
+	XclPowerInfo powerInfo = device->get_power_info();
+	return powerInfo;
 }
 
-void PowerMonitor::outputPowerStatus(std::unordered_map<std::string, float>& status) {
-	float FPGA_power = status["VCCINT"];
-	float board_power = status["VCC12V"] + status["VCC12V_AUX"] + status["V3_AUX"] + FPGA_power;
+void PowerMonitor::outputPowerStatus(XclPowerInfo& status) {
 	auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
-	power_dump_file << timestamp << "," << FPGA_power << "," << board_power << std::endl;
+	power_dump_file << timestamp << ",";
+	power_dump_file << status.m3v3Pex;
+	power_dump_file << std::endl;
 	power_dump_file.flush();
+}
+
+PowerProfile::PowerProfile(std::shared_ptr<xocl::platform> platform) {
+	for (auto device : platform->get_device_range()) {
+      	std::string deviceName = device->get_unique_name();
+		BaseMonitor* monitor = new PowerMonitor(10, device);
+		powerMonitors.push_back(monitor);
+    }
+}
+
+void PowerProfile::launch() {
+	std::cout << "launching power profile ..." << std::endl;
+	for (auto monitor : powerMonitors) {
+		monitor->launch();
+	}
+}
+
+void PowerProfile::terminate() {
+	for (auto monitor : powerMonitors) {
+		monitor->terminate();
+	}
 }
 
 }

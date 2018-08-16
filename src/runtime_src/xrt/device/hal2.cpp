@@ -98,6 +98,52 @@ setup()
 #endif
 }
 
+XclPowerInfo
+device::
+getPowerInfo() {
+  XclPowerInfo powerInfo;
+  hal2::device_info* info = new hal2::device_info();
+  m_ops->mGetDeviceInfo(m_handle, info);
+  powerInfo.mOnChipTemp = info->mOnChipTemp;
+  powerInfo.mFanTemp = info->mFanTemp;
+  powerInfo.mVInt = info->mVInt;
+  powerInfo.mVAux = info->mVAux;
+  powerInfo.mVBram = info->mVBram;
+  powerInfo.mCurrent = info->mCurrent;
+  powerInfo.mNumClocks = info->mNumClocks;
+  powerInfo.mFanSpeed = info->mFanSpeed;
+  powerInfo.mMigCalib = info->mMigCalib;
+  powerInfo.mXMCVersion = info->mXMCVersion;
+  powerInfo.m12VPex = info->m12VPex;
+  powerInfo.m12VAux = info->m12VAux;
+  powerInfo.mPexCurr = info->mPexCurr;
+  powerInfo.mAuxCurr = info->mAuxCurr;
+  powerInfo.mFanRpm = info->mFanRpm;
+  for (int i = 0; i < 4; ++i) powerInfo.mDimmTemp[i] = info->mDimmTemp[i];
+  for (int i = 0; i < 4; ++i) powerInfo.mSE98Temp[i] = info->mSE98Temp[i];
+  powerInfo.m3v3Pex = info->m3v3Pex;
+  powerInfo.m3v3Aux = info->m3v3Aux;
+  powerInfo.mDDRVppBottom = info->mDDRVppBottom;
+  powerInfo.mDDRVppTop = info->mDDRVppTop;
+  powerInfo.mSys5v5 = info->mSys5v5;
+  powerInfo.m1v2Top = info->m1v2Top;
+  powerInfo.m1v8Top = info->m1v8Top;
+  powerInfo.m0v85 = info->m0v85;
+  powerInfo.mMgt0v9 = info->mMgt0v9;
+  powerInfo.m12vSW = info->m12vSW;
+  powerInfo.mMgtVtt = info->mMgtVtt;
+  powerInfo.m1v2Bottom = info->m1v2Bottom;
+  powerInfo.mDriverVersion = info->mDriverVersion;
+  powerInfo.mPciSlot = info->mPciSlot;
+  powerInfo.mIsXPR = info->mIsXPR;
+  powerInfo.mTimeStamp = info->mTimeStamp;
+  strcpy(powerInfo.mFpga, info->mFpga);
+  powerInfo.mPCIeLinkWidthMax = info->mPCIeLinkWidthMax;
+  powerInfo.mPCIeLinkSpeedMax = info->mPCIeLinkSpeedMax;
+  delete info;
+  return powerInfo;
+}
+
 device::BufferObject*
 device::
 getBufferObject(const BufferObjectHandle& boh) const

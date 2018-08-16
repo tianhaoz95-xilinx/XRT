@@ -170,6 +170,9 @@ public:
   virtual unsigned int
   getBankCount() const = 0;
 
+  virtual XclPowerInfo
+  getPowerInfo() = 0;
+
   virtual size_t
   getDdrSize() const = 0;
 

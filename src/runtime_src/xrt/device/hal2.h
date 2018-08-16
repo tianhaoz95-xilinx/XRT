@@ -207,6 +207,9 @@ public:
     }
   }
 
+  virtual XclPowerInfo
+  getPowerInfo();
+
   virtual task::queue*
   getQueue(hal::queue_type qt)
   {
