@@ -761,6 +761,8 @@ public:
             return result;
         result = xclLoadXclBin(m_handle, header);
         delete [] buffer;
+        (void) xclUnlockDevice(m_handle);
+
         return result;
     }
 

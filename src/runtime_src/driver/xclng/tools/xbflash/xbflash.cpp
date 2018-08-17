@@ -62,7 +62,7 @@ struct T_Arguments
     std::shared_ptr<firmwareImage> primary;
     std::shared_ptr<firmwareImage> secondary;
     std::shared_ptr<firmwareImage> bmc;
-    Flasher::E_FlasherType flasherType = Flasher::E_FlasherType::UNSET;
+    std::string flasherType;
     std::string dsa;
     uint64_t timestamp = 0;
     bool force = false;
@@ -95,7 +95,7 @@ int flashDSA(Flasher& f, DSAInfo& dsa)
     if (primary->fail() || (secondary != nullptr && secondary->fail()))
         return -EINVAL;
 
-    return f.upgradeFirmware(primary, secondary);
+    return f.upgradeFirmware(primary.get(), secondary.get());
 }
 
 int updateDSA(unsigned idx, std::string& dsa, uint64_t ts, bool dryrun)
@@ -256,17 +256,7 @@ int main( int argc, char *argv[] )
                 << "You may damage your device with this option." << std::endl;
             if(!canProceed())
                 exit(-ECANCELED);
-
-            if( std::string( optarg ).compare( "spi" ) == 0 ) {
-                args.flasherType = Flasher::E_FlasherType::SPI;
-            } else if( std::string( optarg ).compare( "bpi" ) == 0 ) {
-                args.flasherType = Flasher::E_FlasherType::BPI;
-            } else {
-                std::cout << "Invalid programming mode '" << optarg << "', "
-                    << "must be either 'spi' or 'bpi'." << std::endl;
-                usageAndDie();
-                break;
-            }
+            args.flasherType = std::string(optarg);
             break;
         case 'p':
             notSeenOrDie(seen_p);
@@ -307,9 +297,9 @@ int main( int argc, char *argv[] )
         if(!flasher.isValid())
             ret = -EINVAL;
         else if (args.bmc != nullptr)
-            ret = flasher.upgradeBMCFirmware(args.bmc);
+            ret = flasher.upgradeBMCFirmware(args.bmc.get());
         else
-            ret = flasher.upgradeFirmware(args.primary, args.secondary);
+            ret = flasher.upgradeFirmware(args.primary.get(), args.secondary.get());
     }
     // Automatically choose DSA/BMC files.
     else
@@ -491,8 +481,6 @@ int scanDevices(int argc, char *argv[])
 
     if ( xcldev::pci_device_scanner::device_list.size() == 0 )
         std::cout << "No device is found!" << std::endl;
-    else
-        std::cout << "Found the following devices:" << std::endl;
 
     for( unsigned i = 0; i < xcldev::pci_device_scanner::device_list.size(); i++ )
     {

@@ -623,7 +623,7 @@ struct topThreadCtrl {
     int status;
 };
 
-static void topPrintUsage(std::unique_ptr<xcldev::device> &dev, xclDeviceUsage& devstat, xclDeviceInfo2 &devinfo)
+static void topPrintUsage(const xcldev::device *dev, xclDeviceUsage& devstat, xclDeviceInfo2 &devinfo)
 {
     std::vector<std::string> lines;
 
@@ -657,7 +657,7 @@ static void topThreadFunc(struct topThreadCtrl *ctrl)
                 return;
             }
             clear();
-            topPrintUsage(ctrl->dev, devstat, devinfo);
+            topPrintUsage(ctrl->dev.get(), devstat, devinfo);
             refresh();
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -726,7 +726,7 @@ int xcldev::xclTop(int argc, char *argv[])
 
 const std::string dsaPath("/opt/xilinx/dsa/");
 
-int runShellCmd(std::string& cmd, std::string& output)
+int runShellCmd(const std::string& cmd, std::string& output)
 {
     setenv("XILINX_XRT", "/opt/xilinx/xrt", 0);
     setenv("LD_LIBRARY_PATH", "/opt/xilinx/xrt/lib", 1);
@@ -775,9 +775,17 @@ int xcldev::device::validate()
         return -EINVAL;
     }
 
+    // Program verify.xclbin first.
+    int ret = program(xclbinPath, 0);
+    if (ret != 0)
+    {
+        std::cout << "ERROR: Failed to download verify kernel: err=" << ret << std::endl;
+        return ret;
+    }
+
     std::string output;
     std::string cmd = exePath + " " + xclbinPath;
-    int ret = runShellCmd(cmd, output);
+    ret = runShellCmd(cmd, output);
     if (ret != 0) {
         std::cout << "ERROR: Can't run verify kernel." << std::endl;
         return ret;
