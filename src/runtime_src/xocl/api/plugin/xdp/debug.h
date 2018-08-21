@@ -29,19 +29,12 @@ class xclbin;
 namespace debug {
 
 using cb_reset_type = std::function<void (const xocl::xclbin& xclbin)>;
-using cb_debug_ila_type = std::function<void(std::string& deviceName)>;
 
 void
-register_cb_reset(cb_reset_type && cb);
+register_cb_reset (cb_reset_type && cb);
 
 void
 reset(const xocl::xclbin& xclbin);
-
-void
-register_cb_debug_ila(cb_debug_ila_type && cb);
-
-void
-debug_ila(xocl::device* device);
 
 }} // debug,xocl
 

@@ -272,7 +272,6 @@ private:
     uint32_t mMemoryProfilingNumberSlots;
     uint32_t mAccelProfilingNumberSlots;
     uint32_t mStallProfilingNumberSlots;
-    uint32_t mILADebugNumberSlots;
     std::string mDevUserName;
 
     bool zeroOutDDR();
@@ -370,10 +369,8 @@ private:
     uint64_t mAccelMonBaseAddress[XSAM_MAX_NUMBER_SLOTS];
     std::string mPerfMonSlotName[XSPM_MAX_NUMBER_SLOTS];
     std::string mAccelMonSlotName[XSAM_MAX_NUMBER_SLOTS];
-    std::string mILADebugSlotName[XSAM_MAX_NUMBER_SLOTS];
     uint8_t mPerfmonProperties[XSPM_MAX_NUMBER_SLOTS];
     uint8_t mAccelmonProperties[XSAM_MAX_NUMBER_SLOTS];
-    uint8_t mILADebugProperties[XSAM_MAX_NUMBER_SLOTS];
 }; /* XOCLShim */
 
 } /* xocl */

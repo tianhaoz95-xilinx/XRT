@@ -84,9 +84,6 @@ namespace xocl {
     mAccelProfilingNumberSlots = getIPCountAddrNames(ACCEL_MONITOR, mAccelMonBaseAddress,
       mAccelMonSlotName, mAccelmonProperties, XSAM_MAX_NUMBER_SLOTS);
     
-    mILADebugNumberSlots = getIPCountAddrNames(ILA, nullptr,
-      mILADebugSlotName, mILADebugProperties, XSAM_MAX_NUMBER_SLOTS);
-
     mIsDeviceProfiling = (mMemoryProfilingNumberSlots > 0 || mAccelProfilingNumberSlots > 0);
 
     std::string fifoName;
@@ -119,11 +116,6 @@ namespace xocl {
         mLogStream << "debug_ip_layout: ACCEL_MONITOR slot " << i << ": "
                    << "base address = 0x" << std::hex << mAccelMonBaseAddress[i]
                    << ", name = " << mAccelMonSlotName[i] << std::endl;
-      }
-      for (unsigned int i = 0; i < mILADebugNumberSlots; ++i) {
-        mLogStream << "debug_ip_layout: ILA " << i << ": "
-                   << "name = " << mILADebugSlotName[i]
-                   << ", properties = " << mILADebugProperties[i] << std::endl;
       }
       mLogStream << "debug_ip_layout: AXI_MONITOR_FIFO_LITE: "
                  << "base address = 0x" << std::hex << fifoCtrlBaseAddr << std::endl;

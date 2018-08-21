@@ -73,10 +73,6 @@ namespace XCL {
       appdebug::register_xocl_appdebug_callbacks();
     }
 
-    if (xrt::config::get_ila_debug() != "off") {
-      XCL::register_xocl_debug_callbacks();
-    }
-
     if (applicationProfilingOn()) {
       XCL::register_xocl_profile_callbacks();
     }
