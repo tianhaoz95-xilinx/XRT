@@ -15,16 +15,14 @@
  */
 
 #include "xocl/xclbin/xclbin.h"
-#include "xocl/core/device.h"
 #include "plugin/xdp/debug.h"
 
 namespace xocl { namespace debug {
 
 cb_reset_type cb_reset;
-cb_debug_ila_type cb_debug_ila;
 
 void
-register_cb_reset(cb_reset_type&& cb)
+register_cb_reset (cb_reset_type&& cb)
 {
   cb_reset = std::move(cb);
 }
@@ -34,21 +32,6 @@ reset(const xocl::xclbin& xclbin)
 {
   if (cb_reset)
     cb_reset(xclbin);
-}
-
-void
-register_cb_debug_ila(cb_debug_ila_type && cb)
-{
-  cb_debug_ila = std::move(cb);
-}
-
-void
-debug_ila(xocl::device* device)
-{
-  if (cb_debug_ila) {
-    std::string deviceName = device->get_unique_name();
-    cb_debug_ila(deviceName);
-  }
 }
 
 }} // debug,xocl
