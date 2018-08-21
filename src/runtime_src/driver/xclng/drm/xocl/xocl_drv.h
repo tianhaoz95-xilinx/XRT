@@ -91,6 +91,16 @@ static inline bool uuid_is_null(const xuid_t *uuid)
 #define	XOCL_XILINX_VEN		0x10EE
 #define	XOCL_CHARDEV_REG_COUNT	16
 
+#ifdef RHEL_RELEASE_VERSION
+#if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(7,3)
+#define RHEL_P2P_SUPPORT  1
+#else
+#define RHEL_P2P_SUPPORT  0
+#endif
+#else
+#define RHEL_P2P_SUPPORT  0
+#endif
+
 extern struct class *xrt_class;
 
 struct xocl_dev;
@@ -114,11 +124,6 @@ struct xocl_mem_topology {
 struct xocl_connectivity {
         u64                     size;
         struct connectivity     *connections;
-};
-
-struct xocl_layout {
-        u64                     size;
-        struct ip_layout        *layout;
 };
 
 struct xocl_debug_layout {
@@ -213,6 +218,7 @@ struct xocl_rom_funcs {
 	bool (*is_unified)(struct platform_device *pdev);
 	bool (*mb_mgmt_on)(struct platform_device *pdev);
 	bool (*mb_sched_on)(struct platform_device *pdev);
+	bool (*cdma_on)(struct platform_device *pdev);
 	u16 (*get_ddr_channel_count)(struct platform_device *pdev);
 	u64 (*get_ddr_channel_size)(struct platform_device *pdev);
 	bool (*is_are)(struct platform_device *pdev);
@@ -233,6 +239,8 @@ struct xocl_rom_funcs {
 	(ROM_DEV(xdev) ? ROM_OPS(xdev)->mb_mgmt_on(ROM_DEV(xdev)) : false)
 #define	xocl_mb_sched_on(xdev)		\
 	(ROM_DEV(xdev) ? ROM_OPS(xdev)->mb_sched_on(ROM_DEV(xdev)) : false)
+#define	xocl_cdma_on(xdev)		\
+	(ROM_DEV(xdev) ? ROM_OPS(xdev)->cdma_on(ROM_DEV(xdev)) : false)
 #define	xocl_get_ddr_channel_count(xdev) \
 	(ROM_DEV(xdev) ? ROM_OPS(xdev)->get_ddr_channel_count(ROM_DEV(xdev)) :\
 	0)
@@ -293,6 +301,7 @@ struct xocl_mb_scheduler_funcs {
 	uint (*poll_client)(struct platform_device *pdev, struct file *filp,
 		poll_table *wait, void *priv);
 	int (*reset)(struct platform_device *pdev);
+	int (*validate)(struct platform_device *pdev, struct client_ctx *client, const struct drm_xocl_bo *cmd);
 };
 #define	MB_SCHEDULER_DEV(xdev)	\
 	SUBDEV(xdev, XOCL_SUBDEV_MB_SCHEDULER).pldev
@@ -318,6 +327,10 @@ struct xocl_mb_scheduler_funcs {
 #define	xocl_exec_reset(xdev)		\
 	(MB_SCHEDULER_DEV(xdev) ? 				\
 	 MB_SCHEDULER_OPS(xdev)->reset(MB_SCHEDULER_DEV(xdev)) : \
+        -ENODEV)
+#define	xocl_exec_validate(xdev, client, bo)			\
+	(MB_SCHEDULER_DEV(xdev) ? 				\
+	 MB_SCHEDULER_OPS(xdev)->validate(MB_SCHEDULER_DEV(xdev), client, bo) : \
         -ENODEV)
 #define	XOCL_IS_DDR_USED(xdev, ddr)		\
 	(xdev->topology.m_data[ddr].m_used == 1)
@@ -392,19 +405,31 @@ struct xocl_mb_funcs {
 	int (*load_sche_image)(struct platform_device *pdev, const char *buf,
 		u32 len);
 };
+
+#define	XMC_DEV(xdev)		\
+	SUBDEV(xdev, XOCL_SUBDEV_XMC).pldev
+#define	XMC_OPS(xdev)		\
+	((struct xocl_mb_funcs *)SUBDEV(xdev,	\
+	XOCL_SUBDEV_XMC).ops)
+
+
 #define	MB_DEV(xdev)		\
 	SUBDEV(xdev, XOCL_SUBDEV_MB).pldev
 #define	MB_OPS(xdev)		\
 	((struct xocl_mb_funcs *)SUBDEV(xdev,	\
 	XOCL_SUBDEV_MB).ops)
 #define	xocl_mb_reset(xdev)			\
-	(MB_DEV(xdev) ? MB_OPS(xdev)->reset(MB_DEV(xdev)) : NULL)
+	(XMC_DEV(xdev) ? XMC_OPS(xdev)->reset(XMC_DEV(xdev)) : \
+	(MB_DEV(xdev) ? MB_OPS(xdev)->reset(MB_DEV(xdev)) : NULL))
+
 #define xocl_mb_load_mgmt_image(xdev, buf, len)		\
+	(XMC_DEV(xdev) ? XMC_OPS(xdev)->load_mgmt_image(XMC_DEV(xdev), buf, len) :\
 	(MB_DEV(xdev) ? MB_OPS(xdev)->load_mgmt_image(MB_DEV(xdev), buf, len) :\
-	-ENODEV)
+	-ENODEV))
 #define xocl_mb_load_sche_image(xdev, buf, len)		\
+	(XMC_DEV(xdev) ? XMC_OPS(xdev)->load_sche_image(XMC_DEV(xdev), buf, len) :\
 	(MB_DEV(xdev) ? MB_OPS(xdev)->load_sche_image(MB_DEV(xdev), buf, len) :\
-	-ENODEV)
+	-ENODEV))
 
 /*
  * mailbox callbacks
@@ -584,4 +609,13 @@ void xocl_fini_str_qdma(void);
 int __init xocl_init_mig(void);
 void xocl_fini_mig(void);
 
+int __init xocl_init_xmc(void);
+void xocl_fini_xmc(void);
+
+/* xclbin helpers */
+
+static inline size_t sizeof_ip_layout(const struct ip_layout *layout)
+{
+	return layout ? offsetof(struct ip_layout, m_ip_data) + layout->m_count * sizeof(struct ip_data) : 0;
+}
 #endif
