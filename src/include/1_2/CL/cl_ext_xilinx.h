@@ -47,6 +47,12 @@
 extern "C" {
 #endif
 
+typedef struct{
+  unsigned flags; //Top 8 bits reserved.
+  void *obj;
+  void *param;
+} cl_mem_ext_ptr_t;
+
 /**************************
 * Xilinx vendor extensions*
 **************************/
@@ -69,7 +75,6 @@ extern "C" {
 
 /* Additional cl_device_partition_property */
 #define CL_DEVICE_PARTITION_BY_CONNECTIVITY         (1 << 31)
-
 
 /**
  * Aquire the device address associated with a cl_mem buffer on
@@ -131,17 +136,16 @@ xclEnqueuePeerToPeerCopyBuffer(cl_command_queue    command_queue,
                      const cl_event *    event_wait_list,
                      cl_event *          event_parameter);
 
-// -- Work in progress - new QDMA APIs
-//
-
-/*
+/*----
+ *
  * DOC: OpenCL Stream APIs
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * These structs and functions are used for the new DMA engine QDMA.
  */
 
+
 /**
- * cl_stream_flags. Type of the stream , eg set to CL_STREAM_READ_ONLY for
+ * cl_stream_flags. Type of the stream , eg set to CL_STREAM_READ_ONLY for 
  * read only. Used in clCreateStream()
  */
 typedef cl_bitfield         cl_stream_flags;
@@ -157,7 +161,7 @@ typedef cl_uint             cl_stream_attributes;
 #define CL_PACKET                                   (1 << 1)
 
 /**
- * cl_stream_attributes.
+ * cl_stream_attributes. 
  * eg set it to CL_STREAM_CDH for Customer Defined Header.
  * Used in clReadStream() and clWriteStream()
  */
@@ -165,20 +169,22 @@ typedef cl_uint             cl_stream_xfer_req;
 #define CL_STREAM_CDH                               (1 << 0)
 #define CL_STREAM_PARTIAL                           (1 << 1)
 
-typedef struct _cl_stream*      cl_stream;
-typedef struct _cl_stream_mem*  cl_stream_mem;
+typedef struct _cl_stream *      cl_stream;
+typedef struct _cl_stream_mem *  cl_stream_mem;
 
 /**
  * clCreateStream - create the stream for reading or writing.
  * @device_id   : The device handle on which stream is to be created.
  * @flags       : The cl_stream_flags
  * @attributes  : The attributes of the requested stream.
+ * @ext         : The extension for kernel and argument matching.
  * @errcode_ret : The return value eg CL_SUCCESS
  */
-extern CL_API_ENTRY cl_stream CL_API_CALL
+extern CL_API_ENTRY cl_stream CL_API_CALL 
 clCreateStream(cl_device_id                /* device_id */,
 	       cl_stream_flags             /* flags */,
-	       cl_stream_attributes*       /* attributes*/,
+	       cl_stream_attributes        /* attributes*/,
+	       cl_mem_ext_ptr_t*              /* ext */,
 	       cl_int* /*errcode_ret*/) CL_API_SUFFIX__VERSION_1_0;
 
 /**
@@ -187,7 +193,7 @@ clCreateStream(cl_device_id                /* device_id */,
  * @stream: The stream to be released.
  * Return a cl_int
  */
-extern CL_API_ENTRY cl_int CL_API_CALL
+extern CL_API_ENTRY cl_int CL_API_CALL 
 clReleaseStream(cl_stream /*stream*/) CL_API_SUFFIX__VERSION_1_0;
 
 /**
@@ -227,18 +233,17 @@ clReadStream(cl_device_id     /* device_id*/,
 	     void *                /* ptr */,
 	     size_t                /* offset */,
 	     size_t                /* size */,
-	     cl_stream_xfer_req*   /* attributes */,
+	     cl_stream_xfer_req    /* attributes */,
 	     cl_int*               /* errcode_ret*/) CL_API_SUFFIX__VERSION_1_0;
 
+
 /* clCreateStreamBuffer - Alloc buffer used for read and write.
- * @stream     : The stream to associate the buffer with
  * @size       : The size of the buffer
  * errcode_ret : The return value, eg CL_SUCCESS
  * Returns cl_stream_mem
  */
 extern CL_API_ENTRY cl_stream_mem CL_API_CALL
 clCreateStreamBuffer(cl_device_id device,
-	cl_stream             /* stream*/,
 	size_t                /* size*/,
 	cl_int *              /* errcode_ret*/) CL_API_SUFFIX__VERSION_1_0;
 
@@ -314,7 +319,6 @@ extern CL_API_ENTRY cl_int CL_API_CALL
 	    cl_pipe pipe,
 	    rte_mbuf* buf) CL_API_SUFFIX__VERSION_1_0;
 
-//End work-in-progress QDMA APIs
 
 /*
   Host Accessible Program Scope Globals
@@ -325,11 +329,6 @@ extern CL_API_ENTRY cl_int CL_API_CALL
 
 #define CL_MEM_EXT_PTR_XILINX                       (1 << 31)
 
-typedef struct{
-  unsigned flags; //Top 8 bits reserved.
-  void *obj;
-  void *param;
-} cl_mem_ext_ptr_t;
 
 //valid flags in above
 #define XCL_MEM_DDR_BANK0               (1<<0)
