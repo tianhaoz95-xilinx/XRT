@@ -82,6 +82,7 @@ void PowerMonitor::willLaunch() {
 	power_dump_file << "timestamp" << ",";
 	power_dump_file << "mTimeStamp" << ",";
 	power_dump_file << "mVInt" << ",";
+	power_dump_file << "mCurrent" << ",";
 	power_dump_file << "mVAux" << ",";
 	power_dump_file << "mVBram" << ",";
 	power_dump_file << "m12VPex" << ",";
@@ -114,6 +115,7 @@ void PowerMonitor::outputPowerStatus(XclPowerInfo& status) {
 	power_dump_file << timestamp << ",";
 	power_dump_file << status.mTimeStamp << ",";
 	power_dump_file << status.mVInt << ",";
+	power_dump_file << status.mCurrent << ",";
 	power_dump_file << status.mVAux << ",";
 	power_dump_file << status.mVBram << ",";
 	power_dump_file << status.m12VPex << ",";
@@ -139,7 +141,7 @@ void PowerMonitor::outputPowerStatus(XclPowerInfo& status) {
 PowerProfile::PowerProfile(std::shared_ptr<xocl::platform> platform) {
 	for (auto device : platform->get_device_range()) {
       	std::string deviceName = device->get_unique_name();
-		BaseMonitor* monitor = new PowerMonitor(10, device);
+		BaseMonitor* monitor = new PowerMonitor(100, device);
 		powerMonitors.push_back(monitor);
     }
 }
