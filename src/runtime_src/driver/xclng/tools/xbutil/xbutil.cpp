@@ -19,10 +19,74 @@
 #include <thread>
 #include <chrono>
 #include <curses.h>
+#include <sstream>
+#include <climits>
+#include <algorithm>
 
 #include "xbutil.h"
 #include "shim.h"
-#include <linux/limits.h>
+
+int bdf2index(std::string& bdfStr, unsigned& index)
+{
+    // Extract bdf from bdfStr.
+    int dom = 0, b, d, f;
+    char dummy;
+    std::stringstream s(bdfStr);
+    size_t n = std::count(bdfStr.begin(), bdfStr.end(), ':');
+    if (n == 1)
+        s >> std::hex >> b >> dummy >> d >> dummy >> f;
+    else if (n == 2)
+        s >> std::hex >> dom >> dummy >> b >> dummy >> d >> dummy >> f;
+    if ((n != 1 && n != 2) || s.fail()) {
+        std::cout << "ERROR: failed to extract BDF from " << bdfStr << std::endl;
+        return -EINVAL;
+    }
+
+    xcldev::pci_device_scanner devScanner;
+    try {
+        devScanner.scan(false);
+    } catch (...) {
+        std::cout << "ERROR: failed to scan device" << std::endl;
+        return -EINVAL;
+    }
+
+    for (unsigned i = 0; i < xcldev::pci_device_scanner::device_list.size(); i++) {
+        auto& dev = xcldev::pci_device_scanner::device_list[i];
+        if (dom == dev.domain && b == dev.bus && d == dev.device &&
+            (f == 0 || f == 1)) {
+            index = i;
+            return 0;
+        }
+    }
+
+    std::cout << "ERROR: no device found for " << bdfStr << std::endl;
+    return -ENOENT;
+}
+
+int str2index(const char *arg, unsigned& index)
+{
+    std::string devStr(arg);
+
+    if (devStr.find(":") == std::string::npos) {
+    // The arg contains a board index.
+        unsigned long i;
+        char *endptr;
+        i = std::strtoul(arg, &endptr, 0);
+        if (*endptr != '\0' || i >= UINT_MAX) {
+            std::cout << "ERROR: " << devStr << " is not a valid board index."
+                << std::endl;
+            return -EINVAL;
+        }
+        index = i;
+    } else {
+    // The arg contains domain:bus:device.function string.
+        int ret = bdf2index(devStr, index);
+        if (ret != 0)
+            return ret;
+    }
+
+    return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -115,7 +179,7 @@ int main(int argc, char *argv[])
 	{"trace", no_argument, 0, xcldev::POWER_TRACE}
     };
     int long_index;
-    const char* short_options = "a:d:e:i:r:p:f:g:m:n:c:s:b:ho:"; //don't add numbers
+    const char* short_options = "a:b:c:d:e:f:g:hi:m:n:o:p:r:s:"; //don't add numbers
     while ((c = getopt_long(argc, argv, short_options, long_options, &long_index)) != -1)
     {
         if (cmd == xcldev::LIST) {
@@ -259,12 +323,15 @@ int main(int argc, char *argv[])
             }
             break;
         }
-        case 'd':
-            index = std::atoi(optarg);
+        case 'd': {
+            int ret = str2index(optarg, index);
+            if (ret != 0)
+                return ret;
             if (cmd == xcldev::DD) {
                 ddArgs = dd::parse_dd_options( argc, argv );
             }
             break;
+        }
         case 'r':
             if ((cmd == xcldev::FLASH) || (cmd == xcldev::BOOT) || (cmd == xcldev::DMATEST) ||(cmd == xcldev::STATUS)) {
                 std::cout << "ERROR: '-r' not applicable for this command\n";
@@ -536,7 +603,7 @@ int main(int argc, char *argv[])
     }
 
     if(result == 0) {
-        std::cout << "INFO: xbutil " << v->first << " successful." << std::endl;
+        std::cout << "INFO: xbutil " << v->first << " succeeded." << std::endl;
     } else {
         std::cout << "ERROR: xbutil " << v->first  << " failed." << std::endl;
     }
@@ -678,9 +745,12 @@ int xcldev::xclTop(int argc, char *argv[])
         case 'i':
             interval = std::atoi(optarg);
             break;
-        case 'd':
-            index = (unsigned)std::atoi(optarg);
+        case 'd': {
+            int ret = str2index(optarg, index);
+            if (ret != 0)
+                return ret;
             break;
+        }
         default:
             std::cerr << usage << std::endl;
             return -EINVAL;
@@ -751,18 +821,23 @@ int runShellCmd(const std::string& cmd, std::string& output)
 int xcldev::device::validate()
 {
     // Check pcie training
-    std::cout << "INFO: Checking PCIE link status" << std::endl;
+    std::cout << "INFO: Checking PCIE link status: ";
     if (m_devinfo.mPCIeLinkSpeed != m_devinfo.mPCIeLinkSpeedMax ||
         m_devinfo.mPCIeLinkWidth != m_devinfo.mPCIeLinkWidthMax) {
+        std::cout << "FAILED" << std::endl;
         std::cout << "WARNING: Device trained to lower spec. "
             << "Expect: Gen" << m_devinfo.mPCIeLinkSpeedMax << "x" << m_devinfo.mPCIeLinkWidthMax
             << ", Current: Gen" << m_devinfo.mPCIeLinkSpeed << "x" << m_devinfo.mPCIeLinkWidth
             << std::endl;
         // Non-fatal, continue validating.
     }
+    else
+    {
+        std::cout << "PASSED" << std::endl;
+    }
 
     // Run verify kernel
-    std::cout << "INFO: Testing verify kernel" << std::endl;
+    std::cout << "INFO: Testing verify kernel: ";
     std::string path = dsaPath + m_devinfo.mName;
     path += "/test/verify.";
     std::string exePath = path + "exe";
@@ -770,6 +845,7 @@ int xcldev::device::validate()
 
     struct stat st;
     if (stat(exePath.c_str(), &st) != 0 || stat(xclbinPath.c_str(), &st) != 0) {
+        std::cout << "FAILED" << std::endl;
         std::cout << "ERROR: Failed to find verify kernel. "
             << "DSA package not installed properly." << std::endl;
         return -EINVAL;
@@ -779,6 +855,7 @@ int xcldev::device::validate()
     int ret = program(xclbinPath, 0);
     if (ret != 0)
     {
+        std::cout << "FAILED" << std::endl;
         std::cout << "ERROR: Failed to download verify kernel: err=" << ret << std::endl;
         return ret;
     }
@@ -787,22 +864,28 @@ int xcldev::device::validate()
     std::string cmd = exePath + " " + xclbinPath;
     ret = runShellCmd(cmd, output);
     if (ret != 0) {
+        std::cout << "FAILED" << std::endl;
         std::cout << "ERROR: Can't run verify kernel." << std::endl;
         return ret;
     }
     if (output.find("Hello World") == std::string::npos) {
+        std::cout << "FAILED" << std::endl;
         std::cout << "ERROR: verify kernel failed, output as below:" << std::endl;
         std::cout << "=============================================" << std::endl;
         std::cout << output << std::endl;
         std::cout << "=============================================" << std::endl;
         return -EINVAL;
     }
+    std::cout << "PASSED" << std::endl;
 
     // Perform DMA test
     std::cout << "INFO: Performing DMA test" << std::endl;
     ret = dmatest(0);
-    if (ret != 0)
+    if (ret != 0) {
+        std::cout << "INFO: DMA test FAILED" << std::endl;
         return ret;
+    }
+    std::cout << "INFO: DMA test PASSED" << std::endl;
 
     return 0;
 }
@@ -815,14 +898,17 @@ int xcldev::xclValidate(int argc, char *argv[])
 
     while ((c = getopt(argc, argv, "d:")) != -1) {
         switch (c) {
-        case 'd':
-            index = (unsigned)std::atoi(optarg);
+        case 'd': {
+            int ret = str2index(optarg, index);
+            if (ret != 0)
+                return ret;
             // Hack for now until verify kernel can support multiple boards
             if (index != 0) {
                 std::cout << "ERROR: Can only validate the first board" << std::endl;
                 return -EINVAL;
             }
             break;
+        }
         default:
             std::cerr << usage << std::endl;
             return -EINVAL;
@@ -879,5 +965,4 @@ int xcldev::xclValidate(int argc, char *argv[])
 
     std::cout << "INFO: All devices validated successfully." << std::endl;
     return 0;
-
 }

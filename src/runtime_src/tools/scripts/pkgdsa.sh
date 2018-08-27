@@ -168,13 +168,25 @@ dsaXmlFile="dsa.xml"
 featureRomTimestamp="0"
 fwScheduler=""
 fwManagement=""
+fwBMC=""
 vbnv=""
 pci_vendor_id="0x0000"
 pci_device_id="0x0000"
 pci_subsystem_id="0x0000"
 dsabinOutputFile=""
-post_inst_fail_msg="DSA installed successfully. But failed to flash board(s). Please flash board manually with xbutil flash -a all"
-post_inst_msg="DSA installed successfully. Please flash board manually with xbutil flash -a all"
+
+XBUTIL=/opt/xilinx/xrt/bin/xbutil
+# On CentOS, stdin/stdout are disabled for post install script. Hence, we
+# have to redirect xbutil output to a temp file for user to monitor the progress.
+flash_progress_file="/tmp/${opt_dsa}.install.log"
+pre_inst_msg="
+NOTE!! DSA may need to be flashed on board(s) during package installation.
+NOTE!! It may take several minutes to flash one board, so please be patient.
+NOTE!! Please monitor the progress and status by checking ${flash_progress_file}
+"
+post_inst_flash_fail_msg="Failed to flash DSA on one or more boards.
+Please flash board manually with 'xbutil flash -a all' after package is installed"
+post_inst_msg="DSA package installed successfully."
 
 createEntityAttributeArray ()
 {
@@ -285,6 +297,39 @@ readDsaMetaData()
   done < "${dsaXmlFile}"
 }
 
+initBMCVar()
+{
+    # Looking for the MSP432 firmware image
+    for file in ${XILINX_XRT}/share/fw/*.txt; do
+      [ -e "$file" ] || continue
+
+      # Found "something" break it down into the basic parts
+      baseFileName="${file%.*txt}"        # Remove suffix
+      baseFileName="${baseFileName##*/}"  # Remove Path
+
+      set -- `echo ${baseFileName} | tr '-' ' '`
+      bmcImageName="${1}"
+      bmcDeviceName="${2}"
+      bmcVersion="${3}"
+      bmcMd5Expected="${4}"
+
+      # Calculate the md5 checksum
+      set -- $(md5sum $file)
+      bmcMd5Actual="${1}"
+
+      if [ "${bmcMd5Expected}" == "${bmcMd5Actual}" ]; then
+         echo "Info: Validated MSP432 flash image MD5 value"
+         fwBMC="${file}"
+      else
+         echo "ERROR: MSP432 Flash image failed MD5 varification."
+         echo "       Expected: ${bmcMd5Expected}"
+         echo "       Actual  : ${bmcMd5Actual}"
+         echo "       File:   : $file"
+         exit 1
+      fi
+    done
+}
+
 initDsaBinEnvAndVars()
 {
     # Clean out the dsabin directory
@@ -333,6 +378,8 @@ initDsaBinEnvAndVars()
       fwScheduler="${XILINX_XRT}/share/fw/sched.bin"
       fwManagement="${XILINX_XRT}/share/fw/mgmt.bin"
     fi
+
+    initBMCVar
 }
 
 dodsabin()
@@ -370,6 +417,15 @@ dodsabin()
          xclbinOpts+=" -s FIRMWARE ${fwManagement}"
        else
          echo "Warning: Management firmware does not exist: ${fwManagement}"
+      fi
+    fi
+
+    # -- Firmware: MSP432 --
+    if [ "${fwBMC}" != "" ]; then
+       if [ -f "${fwBMC}" ]; then
+         xclbinOpts+=" -s BMC ${fwBMC}"
+       else
+         echo "Warning: MSP432 firmware does not exist: ${fwBMC}"
       fi
     fi
 
@@ -412,7 +468,6 @@ dodsabin()
     ${XILINX_XRT}/bin/xclbincat ${xclbinOpts}
 
     popd >/dev/null
-
 }
 
 dodebdev()
@@ -455,6 +510,7 @@ dodeb()
 {
     dir=debbuild/$dsa-$version
     mkdir -p $opt_pkgdir/$dir/DEBIAN
+
 cat <<EOF > $opt_pkgdir/$dir/DEBIAN/control
 
 package: $dsa
@@ -468,10 +524,14 @@ maintainer: Xilinx Inc.
 
 EOF
 
+cat <<EOF > $opt_pkgdir/$dir/DEBIAN/preinst
+echo "${pre_inst_msg}"
+EOF
+    chmod 755 $opt_pkgdir/$dir/DEBIAN/preinst
+
 cat <<EOF > $opt_pkgdir/$dir/DEBIAN/postinst
-
-/opt/xilinx/xrt/bin/xbutil flash -f -a ${opt_dsa} -t ${featureRomTimestamp} || echo "${post_inst_fail_msg}"
-
+${XBUTIL} flash -f -a ${opt_dsa} -t ${featureRomTimestamp} > ${flash_progress_file} 2>&1 || echo "${post_inst_flash_fail_msg}"
+echo "${post_inst_msg}"
 EOF
     chmod 755 $opt_pkgdir/$dir/DEBIAN/postinst
 
@@ -577,9 +637,11 @@ requires: xrt >= $opt_xrt
 %description
 Xilinx $dsa deployment DSA. Built on $build_date. This DSA depends on xrt >= $opt_xrt.
 
-%prep
+%pre
+echo "${pre_inst_msg}"
 
 %post
+${XBUTIL} flash -f -a ${opt_dsa} -t ${featureRomTimestamp} > ${flash_progress_file} 2>&1 || echo "${post_inst_flash_fail_msg}"
 echo "${post_inst_msg}"
 
 %install
