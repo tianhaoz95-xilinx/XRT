@@ -83,6 +83,9 @@ namespace xocl {
     
     mAccelProfilingNumberSlots = getIPCountAddrNames(ACCEL_MONITOR, mAccelMonBaseAddress,
       mAccelMonSlotName, mAccelmonProperties, XSAM_MAX_NUMBER_SLOTS);
+
+    mILADebugNumberSlots = getIPCountAddrNames(ILA, nullptr, mILADebugSlotName, 
+      mILADebugProperties, XSAM_MAX_NUMBER_SLOTS);
     
     mIsDeviceProfiling = (mMemoryProfilingNumberSlots > 0 || mAccelProfilingNumberSlots > 0);
 
@@ -112,6 +115,13 @@ namespace xocl {
                    << "base address = 0x" << std::hex << mPerfMonBaseAddress[i]
                    << ", name = " << mPerfMonSlotName[i] << std::endl;
       }
+
+      for (unsigned int i = 0; i < mILADebugNumberSlots; ++i) {
+        mLogStream << "debug_ip_layout: ILA " << i << ": "
+                   << "name = " << mILADebugSlotName[i]
+                   << ", properties = " << mILADebugProperties[i] << std::endl;
+      }
+
       for (unsigned int i = 0; i < mAccelProfilingNumberSlots; ++i) {
         mLogStream << "debug_ip_layout: ACCEL_MONITOR slot " << i << ": "
                    << "base address = 0x" << std::hex << mAccelMonBaseAddress[i]

@@ -198,6 +198,28 @@ namespace XCL
     }
   }
 
+  void cb_debug_ila(std::string& deviceName)
+  {
+    auto rts = XCL::RTSingleton::Instance();
+    unsigned numILA = rts->getProfileNumberSlots(XCL_PERF_MON_ILA, deviceName);
+    if (numILA == 0) 
+      return;
+
+    std::string debugMode = xrt::config::get_ila_debug();
+
+    for (int i = 0; i < numILA; ++i) {
+      std::string monitorName;
+      rts->getProfileSlotName(XCL_PERF_MON_ILA, deviceName, i, monitorName);
+
+      // *** Jake: Insert code here ***
+    }
+  }
+
+  void register_xocl_debug_callbacks()
+  {
+    xocl::debug::register_cb_debug_ila(cb_debug_ila);
+  }
+
 }
 
 
