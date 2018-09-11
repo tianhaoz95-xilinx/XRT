@@ -79,6 +79,9 @@ namespace XCL
 
     void setEnvironment() ;
   } ;
+
+  void cb_debug_ila(std::string& deviceName);
+  void register_xocl_debug_callbacks();
   
 } // end namespace
 
