@@ -105,7 +105,7 @@ get_xrt_debug()
 inline std::string
 get_ila_debug()
 {
-  static std::string value = detail::get_string_value("Debug.ila.debug", "off");
+  static std::string value = detail::get_string_value("Debug.ila", "off");
   return value;
 }
 
@@ -302,5 +302,3 @@ get_sw_em_driver()
 }}
 
 #endif
-
-

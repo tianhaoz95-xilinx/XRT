@@ -43,13 +43,13 @@ namespace XCL {
     return gActive;
   }
 
-  RTSingleton* 
+  RTSingleton*
   RTSingleton::Instance() {
     if (gDead) {
       std::cout << "RTSingleton is dead\n";
       return nullptr;
     }
-    
+
     static RTSingleton singleton;
     return &singleton;
   }
@@ -69,10 +69,13 @@ namespace XCL {
     // share ownership of the global platform
     Platform = xocl::get_shared_platform();
 
+    std::cout << "start registering callbacks" << std::endl;
+
     if (xrt::config::get_app_debug()) {
       appdebug::register_xocl_appdebug_callbacks();
     }
 
+    std::cout << "ILA option: " << xrt::config::get_ila_debug() << std::endl;
     if (xrt::config::get_ila_debug() != "off") {
       XCL::register_xocl_debug_callbacks();
     }
@@ -198,7 +201,7 @@ namespace XCL {
 
     while (ret == -1 && iter < max_iter) {
       ret = xdp::profile::platform::log_device_trace(Platform.get(),type, true);
-      if (ret == -1) 
+      if (ret == -1)
         std::this_thread::sleep_for(std::chrono::milliseconds(wait_msec));
       iter++;
     }
@@ -266,6 +269,3 @@ namespace XCL {
       str = "System Run";
   }
 };
-
-
-
