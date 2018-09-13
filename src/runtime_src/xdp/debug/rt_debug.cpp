@@ -202,21 +202,23 @@ namespace XCL
   {
     auto rts = XCL::RTSingleton::Instance();
     unsigned numILA = rts->getProfileNumberSlots(XCL_PERF_MON_ILA, deviceName);
+
     if (numILA == 0) {
-      std::cout << "No ILA found, exit" << std::endl;
       return;
     }
-
-    std::cout << "ILA detected in xclbin" << std::endl;
 
     std::string debugMode = xrt::config::get_ila_debug();
 
     for (int i = 0; i < numILA; ++i) {
       std::string monitorName;
       rts->getProfileSlotName(XCL_PERF_MON_ILA, deviceName, i, monitorName);
-
-      // *** Jake: Insert code here ***
+      launch_labtool("./labtool_" + std::to_string(i), 3000, "optional arguments");
     }
+  }
+
+  void launch_labtool(std::string root, unsigned port, std::string optional) {
+    // *** Jake: Insert code here ***
+    std::cout << "launch labtool in " << root << " with port " << port << " and optional argument: " << optional << std::endl;
   }
 
   void register_xocl_debug_callbacks()

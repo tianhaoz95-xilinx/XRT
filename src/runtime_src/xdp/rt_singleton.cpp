@@ -69,13 +69,10 @@ namespace XCL {
     // share ownership of the global platform
     Platform = xocl::get_shared_platform();
 
-    std::cout << "start registering callbacks" << std::endl;
-
     if (xrt::config::get_app_debug()) {
       appdebug::register_xocl_appdebug_callbacks();
     }
 
-    std::cout << "ILA option: " << xrt::config::get_ila_debug() << std::endl;
     if (xrt::config::get_ila_debug() != "off") {
       XCL::register_xocl_debug_callbacks();
     }
