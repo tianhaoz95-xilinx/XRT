@@ -165,13 +165,13 @@ int main(int argc, char *argv[])
 
     argv[0] = const_cast<char *>(exe);
     static struct option long_options[] = {
-	{"read", no_argument, 0, xcldev::MEM_READ},
-	{"write", no_argument, 0, xcldev::MEM_WRITE},
-	{"spm", no_argument, 0, xcldev::STATUS_SPM},
-	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
-	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+  	{"read", no_argument, 0, xcldev::MEM_READ},
+  	{"write", no_argument, 0, xcldev::MEM_WRITE},
+  	{"spm", no_argument, 0, xcldev::STATUS_SPM},
+  	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
+  	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+  	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+  	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
     {"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
     };
     int long_index;
@@ -251,9 +251,6 @@ int main(int argc, char *argv[])
             if (cmd == xcldev::FLASH) {
                 flashType = optarg;
                 break;
-            } else if (cmd == xcldev::POWER) {
-            	powerTraceFile = optarg;
-            	break;
             } else if (cmd != xcldev::MEM || subcmd != xcldev::MEM_READ) {
                 std::cout << "ERROR: '-o' not applicable for this command\n";
                 return -1;
@@ -288,8 +285,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-            	size_t tmpSizeInBytes = std::stoll(optarg, &idx, 0);
-                sizeInBytes = tmpSizeInBytes;
+            	sizeInBytes = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
@@ -326,16 +322,11 @@ int main(int argc, char *argv[])
             xclbin = optarg;
             break;
         case 'f':
-            if (cmd != xcldev::CLOCK && cmd != xcldev::POWER) {
-                std::cout << "ERROR: '-f' only allowed with 'clock' or 'power --trace' command\n";
+            if (cmd != xcldev::CLOCK) {
+                std::cout << "ERROR: '-f' only allowed with 'clock' command\n";
                 return -1;
             }
-            if (cmd == xcldev::CLOCK) {
-            	targetFreq[0] = std::atoi(optarg);
-            }
-            if (cmd == xcldev::POWER) {
-            	sampleFreq = std::atoi(optarg);
-            }
+            targetFreq[0] = std::atoi(optarg);
             break;
         case 'g':
             if (cmd != xcldev::CLOCK) {
@@ -563,19 +554,6 @@ int main(int argc, char *argv[])
             result = deviceVec[index]->readSPMCounters();
         }
         break;
-    case xcldev::POWER:
-    	if (ipmask == xcldev::POWER_NONE_MASK) {
-    		result = -1;
-    	}
-    	if (ipmask == xcldev::POWER_ONCE_MASK) {
-    		std::cout << "power once running" << std::endl;
-    		result = deviceVec[index]->readPowerOnce();
-    	}
-    	if (ipmask == xcldev::POWER_TRACE_MASK) {
-    		std::cout << "power trace running" << std::endl;
-    		result = deviceVec[index]->readPowerTrace(sampleFreq, powerTraceFile);
-    	}
-    	break;
     default:
         std::cout << "ERROR: Not implemented\n";
         result = -1;
@@ -676,12 +654,12 @@ static void topPrintUsage(const xcldev::device *dev, xclDeviceUsage& devstat, xc
     dev->m_mem_usage_bar(devstat, lines, 0, devinfo.mDDRBankCount);
 
     dev->m_devinfo_stringize_power(&devinfo, lines);
-    
+
     dev->m_mem_usage_stringize_dynamics(devstat, &devinfo, lines, 0, devinfo.mDDRBankCount);
 
     for(auto line:lines){
             printw("%s\n", line.c_str());
-    } 
+    }
 }
 
 static void topThreadFunc(struct topThreadCtrl *ctrl)
