@@ -165,14 +165,14 @@ int main(int argc, char *argv[])
 
     argv[0] = const_cast<char *>(exe);
     static struct option long_options[] = {
-  	{"read", no_argument, 0, xcldev::MEM_READ},
-  	{"write", no_argument, 0, xcldev::MEM_WRITE},
-  	{"spm", no_argument, 0, xcldev::STATUS_SPM},
-  	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
-  	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-  	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-  	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-    {"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
+      	{"read", no_argument, 0, xcldev::MEM_READ},
+      	{"write", no_argument, 0, xcldev::MEM_WRITE},
+      	{"spm", no_argument, 0, xcldev::STATUS_SPM},
+      	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
+      	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+      	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+      	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+        {"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
     };
     int long_index;
     const char* short_options = "a:b:c:d:e:f:g:hi:m:n:o:p:r:s:"; //don't add numbers
