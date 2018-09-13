@@ -90,7 +90,6 @@ int str2index(const char *arg, unsigned& index)
 
 int main(int argc, char *argv[])
 {
-	unsigned sampleFreq = 1;
     unsigned index = 0xffffffff;
     unsigned regionIndex = 0xffffffff;
     unsigned computeIndex = 0xffffffff;
@@ -100,7 +99,6 @@ int main(int argc, char *argv[])
     unsigned int pattern_byte = 'J';//Rather than zero; writing char 'J' by default
     size_t sizeInBytes = 0;
     std::string outMemReadFile = "memread.out";
-    std::string powerTraceFile = "power_trace.csv";
     std::string flashType = ""; // unset and empty by default
     std::string mcsFile1, mcsFile2;
     std::string xclbin;
@@ -173,10 +171,7 @@ int main(int argc, char *argv[])
 	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
 	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
 	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"once", no_argument, 0, xcldev::POWER_ONCE},
-	{"trace", no_argument, 0, xcldev::POWER_TRACE}
+	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
     };
     int long_index;
     const char* short_options = "a:b:c:d:e:f:g:hi:m:n:o:p:r:s:"; //don't add numbers
@@ -230,22 +225,6 @@ int main(int argc, char *argv[])
             std::cout << "INFO: No Status information available for IP: " << long_options[long_index].name << "\n";
             return 0;
         }
-        case xcldev::POWER_ONCE : {
-			if (cmd != xcldev::POWER) {
-				std::cout << "ERROR: Option '" << long_options[long_index].name << "' cannot be used with command " << cmdname << "\n";
-				return -1;
-			}
-			ipmask |= static_cast<unsigned int>(xcldev::POWER_ONCE_MASK);
-			break;
-		}
-		case xcldev::POWER_TRACE : {
-			if (cmd != xcldev::POWER) {
-				std::cout << "ERROR: Option '" << long_options[long_index].name << "' cannot be used with command " << cmdname << "\n";
-				return -1;
-			}
-			ipmask |= static_cast<unsigned int>(xcldev::POWER_TRACE_MASK);
-			break;
-		}
             //short options are dealt here
         case 'a':{
             if (cmd != xcldev::MEM) {
@@ -254,8 +233,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-            	unsigned long long tmpAddr = std::stoll(optarg, &idx, 0);
-                startAddr = tmpAddr;
+            	startAddr = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
