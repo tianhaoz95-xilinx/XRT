@@ -171,7 +171,8 @@ int main(int argc, char *argv[])
 	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
 	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
 	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
+	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+    {"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
     };
     int long_index;
     const char* short_options = "a:b:c:d:e:f:g:hi:m:n:o:p:r:s:"; //don't add numbers
