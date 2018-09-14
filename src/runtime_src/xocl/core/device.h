@@ -163,10 +163,10 @@ public:
     return get_name() + "-" + std::to_string(m_uid);
   }
 
-  XclPowerInfo
-  get_power_info()
+  DeviceInfo
+  get_device_info()
   {
-    return m_xdevice->getPowerInfo();
+    return m_xdevice->getDeviceInfo();
   }
 
   /**
@@ -473,13 +473,13 @@ public:
   read_image(memory* image,const size_t* origin,const size_t* region,size_t row_pitch,size_t slice_pitch,void *ptr);
 
   //streaming APIs. TODO : document them.
-  int 
+  int
   get_stream(xrt::device::stream_flags flags, xrt::device::stream_attrs attrs, cl_mem_ext_ptr_t* ext, xrt::device::stream_handle* stream);
 
-  int 
+  int
   close_stream(xrt::device::stream_handle stream);
 
-  ssize_t 
+  ssize_t
   write_stream(xrt::device::stream_handle stream, const void* ptr, size_t offset, size_t size, xrt::device::stream_xfer_flags flags);
 
   ssize_t
@@ -488,7 +488,7 @@ public:
   xrt::device::stream_buf
   alloc_stream_buf(size_t size, xrt::device::stream_buf_handle* handle);
 
-  int 
+  int
   free_stream_buf(xrt::device::stream_buf_handle handle);
   /**
    * Read a device register at specified offset

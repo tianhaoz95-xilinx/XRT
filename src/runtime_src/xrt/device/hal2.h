@@ -207,8 +207,8 @@ public:
     }
   }
 
-  virtual XclPowerInfo
-  getPowerInfo();
+  virtual DeviceInfo
+  getDeviceInfo();
 
   virtual task::queue*
   getQueue(hal::queue_type qt)
@@ -321,10 +321,10 @@ public:
 
 public:
 
-  virtual int 
+  virtual int
   createWriteStream(hal::StreamFlags flags, hal::StreamAttributes attr, uint64_t route, uint64_t flow, hal::StreamHandle *stream);
 
-  virtual int 
+  virtual int
   createReadStream(hal::StreamFlags flags, hal::StreamAttributes attr, uint64_t route, uint64_t flow, hal::StreamHandle *stream);
 
   virtual int

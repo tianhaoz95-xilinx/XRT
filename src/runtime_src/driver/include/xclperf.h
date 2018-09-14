@@ -35,6 +35,8 @@
 #ifndef _XCL_PERF_H_
 #define _XCL_PERF_H_
 
+#include <cstddef>
+
 // DSA version (e.g., XCL_PLATFORM=xilinx_adm-pcie-7v3_1ddr_1_1)
 // Simply a default as its read from the device using lspci (see CR 870994)
 #define DSA_MAJOR_VERSION 1
@@ -398,6 +400,24 @@ typedef struct {
 } xclTraceResultsVector;
 
 typedef struct {
+  unsigned mMagic; // = 0X586C0C6C; XL OpenCL X->58(ASCII), L->6C(ASCII), O->0 C->C L->6C(ASCII);
+  char mName[256];
+  unsigned short mHALMajorVersion;
+  unsigned short mHALMinorVersion;
+  unsigned short mVendorId;
+  unsigned short mDeviceId;
+  unsigned short mSubsystemId;
+  unsigned short mSubsystemVendorId;
+  unsigned short mDeviceVersion;
+  size_t mDDRSize;                    // Size of DDR memory
+  size_t mDataAlignment;              // Minimum data alignment requirement for host buffers
+  size_t mDDRFreeSize;                // Total unused/available DDR memory
+  size_t mMinTransferSize;            // Minimum DMA buffer size
+  unsigned short mDDRBankCount;
+  unsigned short mOCLFrequency[4];
+  unsigned short mPCIeLinkWidth;
+  unsigned short mPCIeLinkSpeed;
+  unsigned short mDMAThreads;
   short mOnChipTemp;
   short mFanTemp;
   unsigned short  mVInt;
@@ -434,6 +454,9 @@ typedef struct {
   char mFpga[256];
   unsigned short mPCIeLinkWidthMax;
   unsigned short mPCIeLinkSpeedMax;
-} XclPowerInfo;
+  unsigned short mVccIntVol;
+  unsigned short mVccIntCurr;
+  // More properties here
+} DeviceInfo;
 
 #endif

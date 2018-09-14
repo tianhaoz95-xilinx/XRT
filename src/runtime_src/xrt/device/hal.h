@@ -170,8 +170,8 @@ public:
   virtual unsigned int
   getBankCount() const = 0;
 
-  virtual XclPowerInfo
-  getPowerInfo() = 0;
+  virtual DeviceInfo
+  getDeviceInfo() = 0;
 
   virtual size_t
   getDdrSize() const = 0;
@@ -284,25 +284,25 @@ public:
 //#endif
 
 public:
-  virtual int 
+  virtual int
   createWriteStream(StreamFlags flags, hal::StreamAttributes attr, uint64_t route, uint64_t flow, hal::StreamHandle *stream) = 0;
 
-  virtual int 
+  virtual int
   createReadStream(StreamFlags flags, hal::StreamAttributes attr, uint64_t route, uint64_t flow, hal::StreamHandle *stream) = 0;
 
-  virtual int 
+  virtual int
   closeStream(hal::StreamHandle stream) = 0;
 
   virtual StreamBuf
   allocStreamBuf(size_t size, hal::StreamBufHandle *buf) = 0;
 
-  virtual int 
+  virtual int
   freeStreamBuf(hal::StreamBufHandle buf) = 0;
 
-  virtual ssize_t 
+  virtual ssize_t
   writeStream(hal::StreamHandle stream, const void* ptr, size_t offset, size_t size, hal::StreamXferFlags flags) = 0;
 
-  virtual ssize_t 
+  virtual ssize_t
   readStream(hal::StreamHandle stream, void* ptr, size_t offset, size_t size, hal::StreamXferFlags flags) = 0;
 
 public:

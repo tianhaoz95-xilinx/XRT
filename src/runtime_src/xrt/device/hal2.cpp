@@ -98,50 +98,13 @@ setup()
 #endif
 }
 
-XclPowerInfo
+DeviceInfo
 device::
-getPowerInfo() {
-  XclPowerInfo powerInfo;
+getDeviceInfo() {
   hal2::device_info* info = new hal2::device_info();
   m_ops->mGetDeviceInfo(m_handle, info);
-  powerInfo.mOnChipTemp = info->mOnChipTemp;
-  powerInfo.mFanTemp = info->mFanTemp;
-  powerInfo.mVInt = info->mVInt;
-  powerInfo.mVAux = info->mVAux;
-  powerInfo.mVBram = info->mVBram;
-  powerInfo.mCurrent = info->mCurrent;
-  powerInfo.mNumClocks = info->mNumClocks;
-  powerInfo.mFanSpeed = info->mFanSpeed;
-  powerInfo.mMigCalib = info->mMigCalib;
-  powerInfo.mXMCVersion = info->mXMCVersion;
-  powerInfo.m12VPex = info->m12VPex;
-  powerInfo.m12VAux = info->m12VAux;
-  powerInfo.mPexCurr = info->mPexCurr;
-  powerInfo.mAuxCurr = info->mAuxCurr;
-  powerInfo.mFanRpm = info->mFanRpm;
-  for (int i = 0; i < 4; ++i) powerInfo.mDimmTemp[i] = info->mDimmTemp[i];
-  for (int i = 0; i < 4; ++i) powerInfo.mSE98Temp[i] = info->mSE98Temp[i];
-  powerInfo.m3v3Pex = info->m3v3Pex;
-  powerInfo.m3v3Aux = info->m3v3Aux;
-  powerInfo.mDDRVppBottom = info->mDDRVppBottom;
-  powerInfo.mDDRVppTop = info->mDDRVppTop;
-  powerInfo.mSys5v5 = info->mSys5v5;
-  powerInfo.m1v2Top = info->m1v2Top;
-  powerInfo.m1v8Top = info->m1v8Top;
-  powerInfo.m0v85 = info->m0v85;
-  powerInfo.mMgt0v9 = info->mMgt0v9;
-  powerInfo.m12vSW = info->m12vSW;
-  powerInfo.mMgtVtt = info->mMgtVtt;
-  powerInfo.m1v2Bottom = info->m1v2Bottom;
-  powerInfo.mDriverVersion = info->mDriverVersion;
-  powerInfo.mPciSlot = info->mPciSlot;
-  powerInfo.mIsXPR = info->mIsXPR;
-  powerInfo.mTimeStamp = info->mTimeStamp;
-  strcpy(powerInfo.mFpga, info->mFpga);
-  powerInfo.mPCIeLinkWidthMax = info->mPCIeLinkWidthMax;
-  powerInfo.mPCIeLinkSpeedMax = info->mPCIeLinkSpeedMax;
-  delete info;
-  return powerInfo;
+  DeviceInfo res_info = *(reinterpret_cast<DeviceInfo*>(info));
+  return res_info;
 }
 
 device::BufferObject*
@@ -565,7 +528,7 @@ svm_bo_lookup(void* ptr)
 }
 
 //Stream
-int 
+int
 device::
 createWriteStream(hal::StreamFlags flags, hal::StreamAttributes attr, uint64_t route, uint64_t flow, hal::StreamHandle *stream)
 {
@@ -577,7 +540,7 @@ createWriteStream(hal::StreamFlags flags, hal::StreamAttributes attr, uint64_t r
   return m_ops->mCreateWriteQueue(m_handle,&ctx,stream);
 }
 
-int 
+int
 device::
 createReadStream(hal::StreamFlags flags, hal::StreamAttributes attr, uint64_t route, uint64_t flow, hal::StreamHandle *stream)
 {
@@ -589,9 +552,9 @@ createReadStream(hal::StreamFlags flags, hal::StreamAttributes attr, uint64_t ro
   return m_ops->mCreateReadQueue(m_handle,&ctx,stream);
 }
 
-int 
+int
 device::
-closeStream(hal::StreamHandle stream) 
+closeStream(hal::StreamHandle stream)
 {
   return m_ops->mDestroyQueue(m_handle,stream);
 }
@@ -603,16 +566,16 @@ allocStreamBuf(size_t size, hal::StreamBufHandle *buf)
   return m_ops->mAllocQDMABuf(m_handle,size,buf);
 }
 
-int 
+int
 device::
 freeStreamBuf(hal::StreamBufHandle buf)
 {
   return m_ops->mFreeQDMABuf(m_handle,buf);
 }
 
-ssize_t 
+ssize_t
 device::
-writeStream(hal::StreamHandle stream, const void* ptr, size_t offset, size_t size, hal::StreamXferFlags flags) 
+writeStream(hal::StreamHandle stream, const void* ptr, size_t offset, size_t size, hal::StreamXferFlags flags)
 {
   //TODO:
   (void)offset;
@@ -633,10 +596,10 @@ writeStream(hal::StreamHandle stream, const void* ptr, size_t offset, size_t siz
   return m_ops->mWriteQueue(m_handle,stream,&req);
 }
 
-ssize_t 
+ssize_t
 device::
-readStream(hal::StreamHandle stream, void* ptr, size_t offset, size_t size, hal::StreamXferFlags flags) 
-{ 
+readStream(hal::StreamHandle stream, void* ptr, size_t offset, size_t size, hal::StreamXferFlags flags)
+{
   (void)offset;
   (void)flags;
   xclQueueRequest req;

@@ -82,22 +82,20 @@
 #define XSPM_CR_FIFO_RESET_MASK                  0x00000008
 #define XSPM_CR_COUNTER_RESET_MASK               0x00000002
 #define XSPM_CR_COUNTER_ENABLE_MASK              0x00000001
-#define XSPM_TRACE_CTRL_MASK                     0x00000003        
+#define XSPM_TRACE_CTRL_MASK                     0x00000003
 
 /************************ SDx Accelerator Monitor(SPM) ************************/
 
-#define XSAM_VERSION_OFFSET							 0x00
 #define XSAM_CONTROL_OFFSET                          0x08
 #define XSAM_TRACE_CTRL_OFFSET                       0x10
 #define XSAM_SAMPLE_OFFSET                           0x20
 #define XSAM_ACCEL_EXECUTION_COUNT_OFFSET            0x80
-#define XSAM_ACCEL_EXECUTION_CYCLES_OFFSET           0x84  
+#define XSAM_ACCEL_EXECUTION_CYCLES_OFFSET           0x84
 #define XSAM_ACCEL_STALL_INT_OFFSET                  0x88
 #define XSAM_ACCEL_STALL_STR_OFFSET                  0x8c
 #define XSAM_ACCEL_STALL_EXT_OFFSET                  0x90
 #define XSAM_ACCEL_MIN_EXECUTION_CYCLES_OFFSET       0x94
 #define XSAM_ACCEL_MAX_EXECUTION_CYCLES_OFFSET       0x98
-#define XSAM_ACCEL_START_COUNT_OFFSET				 0x9c
 
 /* SAM Trace Control Masks */
 #define XSAM_TRACE_STALL_SELECT_MASK    0x0000001c
@@ -181,7 +179,7 @@
 #define XAPM_SINC8_OFFSET               0x0284  /**< Sampled Incrementer 8 Register */
 #define XAPM_SMC9_OFFSET                0x0290  /**< Sampled Metric Counter 9 Register */
 #define XAPM_SINC9_OFFSET               0x0294  /**< Sampled Incrementer 9 Register */
-                                        
+
 #define XAPM_MC10_OFFSET                0x01A0  /**< Metric Counter 10 Register */
 #define XAPM_MC11_OFFSET                0x01B0  /**< Metric Counter 11 Register */
 #define XAPM_MC12_OFFSET                0x0500  /**< Metric Counter 12 Register */
@@ -220,7 +218,7 @@
 #define XAPM_MC45_OFFSET                0x0990  /**< Metric Counter 45 Register */
 #define XAPM_MC46_OFFSET                0x09A0  /**< Metric Counter 46 Register */
 #define XAPM_MC47_OFFSET                0x09B0  /**< Metric Counter 47 Register */
-                                        
+
 #define XAPM_SMC10_OFFSET               0x02A0  /**< Sampled Metric Counter 10 Register */
 #define XAPM_SMC11_OFFSET               0x02B0  /**< Sampled Metric Counter 11 Register */
 #define XAPM_SMC12_OFFSET               0x0600  /**< Sampled Metric Counter 12 Register */
@@ -276,7 +274,7 @@
 #define XAPM_SMC61_OFFSET               0x0A58  /**< Sampled Metric Counter 61 Register */
 #define XAPM_SMC62_OFFSET               0x0AB4  /**< Sampled Metric Counter 62 Register */
 #define XAPM_SMC63_OFFSET               0x0AB8  /**< Sampled Metric Counter 63 Register */
-                                        
+
 #define XAPM_CTL_OFFSET                 0x0300  /**< Control Register */
 #define XAPM_ID_OFFSET                  0x0304  /**< Latency ID Register */
 #define XAPM_IDMASK_OFFSET              0x0308  /**< ID Mask Register */
@@ -371,4 +369,3 @@
 #define LAPC_SNAPSHOT_STATUS_3_OFFSET     0x20c
 
 #endif /* _PERFMON_PARAMETERS_H_ */
-

@@ -32,7 +32,6 @@
 #include <string>
 #include <chrono>
 #include <iostream>
-#include <thread>
 
 namespace XCL {
 
@@ -78,12 +77,6 @@ namespace XCL {
       XCL::register_xocl_profile_callbacks();
     }
 
-    std::cout << "before constructing power profile" << std::endl;
-    powerProfile = new PowerProfile(Platform);
-    std::cout << "before launching power profile" << std::endl;
-    powerProfile->launch();
-    std::cout << "after launching power profile" << std::endl;
-
 #ifdef PMD_OCL
     return;
 #endif
@@ -95,8 +88,6 @@ namespace XCL {
   RTSingleton::~RTSingleton() {
     gActive = false;
 
-    powerProfile->terminate();
-
     endProfiling();
 
     gDead = true;
@@ -104,7 +95,6 @@ namespace XCL {
     // Destruct in reverse order of construction
     delete ProfileMgr;
     delete DebugMgr;
-    delete powerProfile;
   }
 
   // Kick off profiling and open writers
