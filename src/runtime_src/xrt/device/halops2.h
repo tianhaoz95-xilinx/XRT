@@ -38,6 +38,7 @@ typedef xclDeviceInfo2        device_info;
 typedef xclPerfMonType        perfmon_type;
 typedef xclPerfMonEventType   perfmon_event_type;
 typedef xclPerfMonEventID     perfmon_event_id;
+typedef xclDeviceInfo2        device_info;
 
 class operations
 {
@@ -228,7 +229,7 @@ public:
       : p.size;
   }
 
-  uint64_t 
+  uint64_t
   mGetDeviceAddr(xclDeviceHandle handle, unsigned int boHandle) const
   {
     xclBOProperties p;
@@ -242,5 +243,3 @@ public:
 }} // hal2,xrt
 
 #endif
-
-

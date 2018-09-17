@@ -80,11 +80,13 @@ namespace XCL {
     if (applicationProfilingOn()) {
       XCL::register_xocl_profile_callbacks();
     }
+
 #ifdef PMD_OCL
     return;
 #endif
 
     gActive = true;
+
   };
 
   RTSingleton::~RTSingleton() {

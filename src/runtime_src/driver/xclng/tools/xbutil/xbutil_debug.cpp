@@ -271,5 +271,3 @@ int xcldev::device::print_debug_ip_list (int aVerbose) {
     std::cout << "Run 'xbutil status' with option --<ipname> to get more information about the IP" << std::endl;
     return 0;
 }
-
-

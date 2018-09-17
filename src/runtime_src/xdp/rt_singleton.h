@@ -39,7 +39,7 @@ namespace XCL {
    * This function can be called during static global exit()
    * to check if it is no longer safe to rely on the singleton
    *
-   * @return 
+   * @return
    *   true as long as main is running, false after the singleton dtor
    *   has been called during static global destruction.
    */
@@ -149,5 +149,3 @@ namespace XCL {
 };
 
 #endif
-
-
