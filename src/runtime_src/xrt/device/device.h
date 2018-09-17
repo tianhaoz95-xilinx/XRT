@@ -25,6 +25,7 @@
 #include <thread>
 #include <mutex>
 #include <algorithm>
+
 namespace xrt {
 
 /**
@@ -134,6 +135,12 @@ public:
   copyDeviceInfo(const device* src)
   {
     m_hal->copyDeviceInfo(src->m_hal.get());
+  }
+
+  size_t
+  get_cdma_count() const
+  {
+    return m_hal->get_cdma_count();
   }
 
   /**
@@ -357,18 +364,20 @@ public:
   { return m_hal->exec_wait(timeout_ms); }
 
 public:
-//  //TODO: BufferObject accessors. These are intermediary functions.
+  /**
+   * Get the device address of a buffer object
+   *
+   * @param boh
+   *   Handle to buffer object
+   * @returns
+   *   Device side address of buffer object
+   * @throws
+   *   std::runtime_error if buffer object is unknown to this device
+   */
   uint64_t getDeviceAddr(const BufferObjectHandle& boh)
   {
-      //TODO: check for the device match
     return m_hal->getDeviceAddr(boh);
   }
-//
-//  void* getHostAddr(const BufferObjectHandle& boh)
-//  {
-//      //TODO: check for the device match
-//    return m_hal->getHostAddr(boh);
-//  }
 
   /**
    * Export FD of buffer object handle on this device.

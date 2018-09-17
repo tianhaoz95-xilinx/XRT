@@ -186,6 +186,9 @@ public:
   virtual std::ostream&
   printDeviceInfo(std::ostream&) const = 0;
 
+  virtual size_t
+  get_cdma_count() const = 0;
+
   virtual ExecBufferObjectHandle
   allocExecBuffer(size_t sz) = 0;
 
@@ -261,27 +264,6 @@ public:
   {
     throw std::runtime_error("exec_wait not supported");
   }
-
-//#ifdef PMD_OCL
-//public:
-//  virtual StreamHandle
-//  openStream(unsigned depth, unsigned q, direction dir) = 0;
-//
-//  virtual void
-//  closeStream(StreamHandle strm) = 0;
-//
-//  virtual unsigned
-//  send(StreamHandle strm, PacketObject *pkts, unsigned count) = 0;
-//
-//  virtual unsigned
-//  recv(StreamHandle strm, PacketObject *pkts, unsigned count) = 0;
-//
-//  virtual PacketObject
-//  acquirePacket() = 0;
-//
-//  virtual void
-//  releasePacket(PacketObject pkt) = 0;
-//#endif
 
 public:
   virtual int
