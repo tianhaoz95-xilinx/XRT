@@ -29,7 +29,6 @@
 #include <memory>
 #include <map>
 
-
 namespace xrt { namespace hal2 {
 
 namespace hal  = xrt::hal;
@@ -255,6 +254,12 @@ public:
 
   virtual std::ostream&
   printDeviceInfo(std::ostream& ostr) const;
+
+  virtual size_t
+  get_cdma_count() const
+  {
+    return m_devinfo.mNumCDMA;
+  }
 
   virtual ExecBufferObjectHandle
   allocExecBuffer(size_t sz);

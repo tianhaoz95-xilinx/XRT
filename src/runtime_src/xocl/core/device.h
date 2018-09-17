@@ -23,6 +23,7 @@
 #include "xocl/core/compute_unit.h"
 #include "xocl/xclbin/xclbin.h"
 #include "xrt/device/device.h"
+#include "xrt/scheduler/command.h"
 
 #include <unistd.h>
 
@@ -40,6 +41,7 @@ public:
   using compute_unit_vector_type = std::vector<compute_unit_type>;
   using compute_unit_range = compute_unit_vector_type;
   using compute_unit_iterator = compute_unit_vector_type::const_iterator;
+  using cmd_type = std::shared_ptr<xrt::command>;
 
   /**
    * Construct an xocl::device.
@@ -436,12 +438,11 @@ public:
    *  The offset in buffer read from
    * @param size
    *  Number of bytes to copy
+   * @param cmd
+   *  Copy command buffer to be scheduled for execution
    */
   void
-  copy_buffer(memory* src_buffer, memory* dst_buffer, size_t src_offset, size_t dst_offset, size_t size);
-
-
-
+  copy_buffer(memory* src_buffer, memory* dst_buffer, size_t src_offset, size_t dst_offset, size_t size, const cmd_type& cmd);
 
   void
   copy_p2p_buffer(memory* src_buffer, memory* dst_buffer, size_t src_offset, size_t dst_offset, size_t size);
@@ -474,7 +475,7 @@ public:
 
   //streaming APIs. TODO : document them.
   int
-  get_stream(xrt::device::stream_flags flags, xrt::device::stream_attrs attrs, cl_mem_ext_ptr_t* ext, xrt::device::stream_handle* stream);
+  get_stream(xrt::device::stream_flags flags, xrt::device::stream_attrs attrs, const cl_mem_ext_ptr_t* ext, xrt::device::stream_handle* stream);
 
   int
   close_stream(xrt::device::stream_handle stream);
@@ -650,6 +651,12 @@ public:
   get_num_cus() const
   {
     return m_computeunits.size();
+  }
+
+  size_t
+  get_num_cdmas() const
+  {
+    return m_xdevice->get_cdma_count();
   }
 
 protected:

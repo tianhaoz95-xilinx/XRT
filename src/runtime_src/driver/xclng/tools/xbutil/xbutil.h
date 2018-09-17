@@ -157,15 +157,26 @@ class device {
     xclErrorStatus m_errinfo;
 
 public:
+    int mDomain;
+    int mBus;
+    int mDev;
+    int mUserFunc;
+    int mMgmtFunc;
     device(unsigned int idx, const char* log) : m_idx(idx), m_handle(nullptr), m_devinfo{} {
+        auto& dev = xcldev::pci_device_scanner::device_list[m_idx];
+        mDomain = dev.domain;
+        mBus = dev.bus;
+        mDev = dev.device;
+        mUserFunc = dev.user_func;
+        mMgmtFunc = dev.mgmt_func;
         m_handle = xclOpen(m_idx, log, XCL_QUIET);
         if (!m_handle)
-            throw std::runtime_error("Failed to open device index, " + std::to_string(m_idx));
+            throw std::runtime_error("Failed to open device: " + dev.mgmt_name);
         if (xclGetDeviceInfo2(m_handle, &m_devinfo))
-            throw std::runtime_error("Unable to query device index, " + std::to_string(m_idx));
+            throw std::runtime_error("Unable to query device index, " + dev.mgmt_name);
 #ifdef AXI_FIREWALL
         if (xclGetErrorStatus(m_handle, &m_errinfo))
-            throw std::runtime_error("Unable to query device index for AXI error, " + std::to_string(m_idx));
+            throw std::runtime_error("Unable to query device index for AXI error, " + dev.mgmt_name);
 #endif
     }
 
@@ -260,7 +271,7 @@ public:
         ss << std::setw(16) << ssdevice.str();
     ///    ss << std::setw(16) << std::hex << m_devinfo->mSubsystemId << std::dec;
         ss << std::setw(16) << std::hex << m_devinfo->mSubsystemVendorId << std::dec;
-        ss << std::setw(16) << m_devinfo->mXMCVersion << "\n\n";
+        ss << std::setw(16) << (m_devinfo->mXMCVersion != XCL_NO_SENSOR_DEV_LL ? m_devinfo->mXMCVersion : m_devinfo->mMBVersion) << "\n\n";
 
         ss << std::setw(16) << "DDR size" << std::setw(16) << "DDR count";
         ss << std::setw(16) << "OCL Frequency";
@@ -448,7 +459,7 @@ public:
 
 
         ss << std::setw(16) << "MGT 0V9" << std::setw(16) << "12V SW";
-        ss << std::setw(16) << "MGT VTT" << std::setw(16) << "1V2 BOTTOM" << "\n";
+        ss << std::setw(16) << "MGT VTT" << "\n";
 
 
         if(m_devinfo->mMgt0v9 == XCL_NO_SENSOR_DEV_S)
@@ -468,19 +479,12 @@ public:
 
 
         if(m_devinfo->mMgtVtt == XCL_NO_SENSOR_DEV_S)
-            ss << std::setw(16) << "Not support";
+            ss << std::setw(16) << "Not support" << "\n\n";
         else if(m_devinfo->mMgtVtt == XCL_INVALID_SENSOR_VAL)
-            ss << std::setw(16) << "Not support";
-        else
-            ss << std::setw(16) << std::to_string((float)m_devinfo->mMgtVtt/1000).substr(0,4) + "V";
-
-
-        if(m_devinfo->m1v2Bottom == XCL_NO_SENSOR_DEV_S)
-            ss << std::setw(16) << "Not support" << "\n\n";
-        else if(m_devinfo->m1v2Bottom == XCL_INVALID_SENSOR_VAL)
             ss << std::setw(16) << "Not support" << "\n\n";
         else
-            ss << std::setw(16) << std::to_string((float)m_devinfo->m1v2Bottom/1000).substr(0,4) + "V" << "\n\n";
+            ss << std::setw(16) << std::to_string((float)m_devinfo->mMgtVtt/1000).substr(0,4) + "V" << "\n\n";
+
 
         ss << std::setw(16) << "VCCINT VOL" << std::setw(16) << "VCCINT CURR" << "\n";
         if(m_devinfo->mVccIntVol == XCL_NO_SENSOR_DEV_S)
@@ -495,8 +499,9 @@ public:
             ss << std::setw(16) << "Not support" << "\n";
         else if(m_devinfo->mVccIntCurr == XCL_INVALID_SENSOR_VAL)
             ss << std::setw(16) << "Not support" << "\n";
-        else
-            ss << std::setw(16) << std::to_string(m_devinfo->mVccIntCurr) + "mA" << "\n";
+        else{
+            ss << std::setw(16) << (m_devinfo->mVccIntCurr >= 10000 ? (std::to_string(m_devinfo->mVccIntCurr) + "mA") : "<10A") << "\n";
+        }
 
 
         m_devinfo_stringize_power(m_devinfo, lines);
@@ -544,7 +549,10 @@ public:
             numDDR = map->m_count;
             if(numDDR <= 8) //Driver side limit, ddrMemUsed etc
                numSupportedMems = numDDR;
-            for( unsigned i = 0; i <numDDR; i++ ) {
+            for(unsigned i = 0; i <numDDR; i++ ) 
+	    {
+		if(map->m_mem_data[i].m_type == MEM_STREAMING)
+		    continue;	
 
                 percentage = (float)devstat.ddrMemUsed[i]*100 / (map->m_mem_data[ i ].m_size<<10);
                 nums_fiftieth = (int)percentage/2;
@@ -827,11 +835,12 @@ public:
      *
      * TODO: Refactor this function to be much shorter.
      */
-    int dmatest(size_t blockSize) {
+    int dmatest(size_t blockSize, bool verbose) {
         if (blockSize == 0)
-            blockSize = 0x200000; // Default block size
+            blockSize = 256 * 1024 * 1024; // Default block size
 
-        std::cout << "Total DDR size: " << m_devinfo.mDDRSize/(1024 * 1024) << " MB\n";
+        if (verbose)
+            std::cout << "Total DDR size: " << m_devinfo.mDDRSize/(1024 * 1024) << " MB\n";
         unsigned numDDR = m_devinfo.mDDRBankCount;
         bool isAREDevice = false;
         if (strstr(m_devinfo.mName, "-xare")) {//This is ARE device
@@ -873,11 +882,15 @@ public:
                 ifs.read(buffer, buf_size);
                 mem_topology *map;
                 map = (mem_topology *)buffer;
-                std::cout << "Reporting from mem_topology:" << std::endl;
+                if (verbose)
+                    std::cout << "Reporting from mem_topology:" << std::endl;
                 numDDR = map->m_count;
                 for( unsigned i = 0; i < numDDR; i++ ) {
+		    if(map->m_mem_data[i].m_type == MEM_STREAMING)
+		       continue;	
                     if( map->m_mem_data[i].m_used ) {
-                        std::cout << "Data Validity & DMA Test on " << map->m_mem_data[i].m_tag << "\n";
+                        if (verbose)
+                            std::cout << "Data Validity & DMA Test on " << map->m_mem_data[i].m_tag << "\n";
                         addr = map->m_mem_data[i].m_base_address;
 
                         for( unsigned sz = 1; sz <= 256; sz *= 2 ) {
@@ -904,9 +917,11 @@ public:
             }
             ifs.close();
         } else { // legacy mode
-            std::cout << "Reporting in legacy mode:" << std::endl;
+            if (verbose)
+                std::cout << "Reporting in legacy mode:" << std::endl;
             for (unsigned i = 0; i < numDDR; i++) {
-                std::cout << "Data Validity & DMA Test on DDR[" << i << "]\n";
+                if (verbose)
+                    std::cout << "Data Validity & DMA Test on DDR[" << i << "]\n";
                 addr = i * oneDDRSize;
 
                 for( unsigned sz = 1; sz <= 256; sz *= 2 ) {
@@ -1111,14 +1126,20 @@ public:
         return xclGetDeviceInfo2(m_handle, &devinfo);
     }
 
-    int validate();
+    int validate(bool quick);
+
+private:
+    // Run a test case as <exe> <xclbin> [-d index] on this device and collect
+    // all output from the run into "output"
+    // Note: exe should assume index to be 0 without -d
+    int runTestCase(const std::string& exe, const std::string& xclbin,
+        std::string& output);
 };
 
 void printHelp(const std::string& exe);
 int xclTop(int argc, char *argv[]);
 int xclValidate(int argc, char *argv[]);
 std::unique_ptr<xcldev::device> xclGetDevice(unsigned index);
-
 } // end namespace xcldev
 
 #endif /* XBUTIL_H */
