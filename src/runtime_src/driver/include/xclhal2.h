@@ -138,6 +138,7 @@ struct xclDeviceInfo2 {
   unsigned short mVccIntVol;
   unsigned short mVccIntCurr;
   unsigned short mNumCDMA;
+  char mDeviceID[256];
   // More properties here
 };
 

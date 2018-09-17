@@ -672,6 +672,9 @@ int xocl::XOCLShim::xclGetDeviceInfo2(xclDeviceInfo2 *info)
     info->mPCIeLinkSpeedMax = xclSysfsGetInt(true, "", "link_speed_max");
     info->mPCIeLinkWidthMax = xclSysfsGetInt(true, "", "link_width_max");
 
+    std::string device_id = xcldev::pci_device_scanner::device_list[mBoardNumber].user_name;
+    std::memcpy(info->mDeviceID, device_id.c_str(), device_id.size() + 1);
+
     return 0;
 }
 
