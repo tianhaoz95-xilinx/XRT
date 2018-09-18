@@ -110,6 +110,7 @@ namespace XCL {
   public:
     void logFinalTrace(xclPerfMonType type);
     unsigned getProfileNumberSlots(xclPerfMonType type, std::string& deviceName);
+    DeviceInfo getDeviceInfo(std::string& deviceName);
     void getProfileSlotName(xclPerfMonType type, std::string& deviceName,
                             unsigned slotnum, std::string& slotName);
     void getProfileKernelName(const std::string& deviceName, const std::string& cuName, std::string& kernelName);

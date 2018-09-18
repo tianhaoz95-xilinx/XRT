@@ -214,6 +214,11 @@ namespace XCL {
     return numSlots;
   }
 
+  DeviceInfo RTSingleton::getDeviceInfo(std::string& deviceName) {
+    DeviceInfo deviceInfo = xdp::profile::platform::get_device_info(Platform.get(), deviceName);
+    return deviceInfo;
+  }
+
   void RTSingleton::getProfileSlotName(xclPerfMonType type, std::string& deviceName,
                                        unsigned slotnum, std::string& slotName) {
     xdp::profile::platform::get_profile_slot_name(Platform.get(), deviceName,

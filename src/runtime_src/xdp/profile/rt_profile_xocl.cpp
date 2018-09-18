@@ -202,6 +202,19 @@ get_profile_num_slots(key k, std::string& deviceName, xclPerfMonType type)
   return xdp::profile::device::getProfileNumSlots(device.get(), type);
 }
 
+DeviceInfo
+get_device_info(key k, std::string& deviceName)
+{
+  auto platform = k;
+  for (auto device : platform->get_device_range()) {
+    std::string currDeviceName = device->get_unique_name();
+    if (currDeviceName.compare(deviceName) == 0) {
+      return device->get_xrt_device()->getDeviceInfo();
+    }
+  }
+  return {};
+}
+
 cl_int
 get_profile_slot_name(key k, std::string& deviceName, xclPerfMonType type,
 		              unsigned slotnum, std::string& slotName)

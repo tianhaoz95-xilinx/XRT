@@ -82,7 +82,7 @@ namespace XCL
 
   void cb_debug_ila(std::string& deviceName);
   void register_xocl_debug_callbacks();
-  void launch_labtool(std::string root, unsigned port, std::string optional);
+  void launch_labtool(std::string root, unsigned port, unsigned mgmt_instance, std::string optional);
 
 } // end namespace
 

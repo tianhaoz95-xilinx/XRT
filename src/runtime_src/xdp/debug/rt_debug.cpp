@@ -207,18 +207,21 @@ namespace XCL
       return;
     }
 
-    std::string debugMode = xrt::config::get_ila_debug();
-
+    auto device_info = rts->getDeviceInfo(deviceName);
+    unsigned mgmt_instance = device_info.mDeviceMgmtInstance;
     for (int i = 0; i < numILA; ++i) {
       std::string monitorName;
       rts->getProfileSlotName(XCL_PERF_MON_ILA, deviceName, i, monitorName);
-      launch_labtool("./labtool_" + std::to_string(i), 3000, "optional arguments");
+      launch_labtool("./labtool_" + std::to_string(i), 3000, mgmt_instance, "optional arguments");
     }
   }
 
-  void launch_labtool(std::string root, unsigned port, std::string optional) {
+  void launch_labtool(std::string root, unsigned port, unsigned mgmt_instance, std::string optional) {
     // *** Jake: Insert code here ***
-    std::cout << "launch labtool in " << root << " with port " << port << " and optional argument: " << optional << std::endl;
+    std::cout << "launch labtool in " << root;
+    std::cout << " with port " << port;
+    std::cout << " with mgmt_instance" << mgmt_instance;
+    std::cout << " and optional argument: " << optional << std::endl;
   }
 
   void register_xocl_debug_callbacks()
