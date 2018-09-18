@@ -612,6 +612,19 @@ void xocl::XOCLShim::xclSysfsGetDeviceInfo(xclDeviceInfo2 *info)
         i++) {
         info->mOCLFrequency[i] = freqs[i];
     }
+
+    std::string user_name = xcldev::pci_device_scanner::device_list[mBoardNumber].user_name;
+    std::string mgmt_name = xcldev::pci_device_scanner::device_list[mBoardNumber].mgmt_name;
+    unsigned user_instance = xcldev::pci_device_scanner::device_list[mBoardNumber].user_instance;
+    unsigned mgmt_instance = xcldev::pci_device_scanner::device_list[mBoardNumber].mgmt_instance;
+    int user_func = xcldev::pci_device_scanner::device_list[mBoardNumber].user_func;
+    int mgmt_func = xcldev::pci_device_scanner::device_list[mBoardNumber].mgmt_func;
+    std::memcpy(info->mDeviceUserName, user_name.c_str(), user_name.size() + 1);
+    std::memcpy(info->mDeviceMgmtName, mgmt_name.c_str(), mgmt_name.size() + 1);
+    info->mDeviceUserInstance = user_instance;
+    info->mDeviceMgmtInstance = mgmt_instance;
+    info->mDeviceUserFunc = user_func;
+    info->mDeviceMgmtFunc = mgmt_func;
 }
 
 /*
@@ -670,9 +683,6 @@ int xocl::XOCLShim::xclGetDeviceInfo2(xclDeviceInfo2 *info)
 
     info->mPCIeLinkSpeedMax = xclSysfsGetInt(true, "", "link_speed_max");
     info->mPCIeLinkWidthMax = xclSysfsGetInt(true, "", "link_width_max");
-
-    std::string device_id = xcldev::pci_device_scanner::device_list[mBoardNumber].user_name;
-    std::memcpy(info->mDeviceID, device_id.c_str(), device_id.size() + 1);
 
     return 0;
 }

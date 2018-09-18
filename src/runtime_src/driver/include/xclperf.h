@@ -456,6 +456,10 @@ typedef struct {
   unsigned short mPCIeLinkSpeedMax;
   unsigned short mVccIntVol;
   unsigned short mVccIntCurr;
+	unsigned mDeviceUserInstance;
+  unsigned mDeviceMgmtInstance;
+  int mDeviceUserFunc;
+  int mDeviceMgmtFunc;
   // More properties here
 } DeviceInfo;
 
