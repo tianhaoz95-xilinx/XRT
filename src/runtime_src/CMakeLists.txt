@@ -1,3 +1,7 @@
+if( ${CMAKE_BUILD_TYPE} STREQUAL "Release")
+  add_subdirectory(doc)
+endif()
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${BOOST_FILESYSTEM_INCLUDE_DIRS}
@@ -45,7 +49,7 @@ add_subdirectory(tools/scripts)
 set (CMAKE_SHARED_LINKER_FLAGS "-Wl,-Bsymbolic")
 
 set_target_properties(xilinxopencl PROPERTIES VERSION ${XRT_VERSION_STRING}
-  SOVERSION ${XRT_VERSION_MAJOR})
+  SOVERSION ${XRT_SOVERSION})
 
 target_link_libraries(xdp
   xilinxopencl

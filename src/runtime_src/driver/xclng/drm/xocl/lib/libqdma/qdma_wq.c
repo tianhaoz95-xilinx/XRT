@@ -30,6 +30,8 @@
 #include "qdma_descq.h"
 #include "qdma_wq.h"
 
+#define	QDMA_ST_H2C_MASK	0x3f
+
 int qdma_wq_destroy(struct qdma_wq *queue)
 {
 	int			ret = 0;
@@ -141,7 +143,7 @@ int qdma_wq_create(unsigned long dev_hdl, struct qdma_queue_conf *qconf,
 		ret = -ENOMEM;
 		goto failed;
 	}
-	queue->sgc_avail = queue->qlen;
+	queue->sgc_avail = queue->qlen - 1 ;
 	queue->sgc_len = queue->qlen;
 	queue->sgc_pidx = 0;
 
@@ -246,14 +248,14 @@ static int descq_st_h2c_fill(struct qdma_descq *descq, struct qdma_wqe *wqe)
 	ssize_t			len, total = 0;
 	int			i;
 
-	if (!descq->avail)
+	if (!descq->avail || descq->q_state != Q_STATE_ONLINE)
 		return -ENOENT;
 
-	desc = (struct qdma_h2c_desc *)descq->desc + descq->pidx;
 	cb = qdma_req_cb_get(&wqe->wr.req);
-	desc->flags |= S_H2C_DESC_F_SOP;
 	wqe->state = QDMA_WQE_STATE_PENDING;
 	sg = wqe->unproc_sg;
+	desc = (struct qdma_h2c_desc *)descq->desc + descq->pidx;
+	desc->flags = S_H2C_DESC_F_SOP;
 	for(i = 0; i < wqe->unproc_sg_num; i++, sg = next) {
 		off = 0;
 		len = sg->length;
@@ -271,42 +273,60 @@ static int descq_st_h2c_fill(struct qdma_descq *descq, struct qdma_wqe *wqe)
 			wqe->unproc_sg_off = 0;
 			next = sg_next(sg);
 		}
+		if ((len & QDMA_ST_H2C_MASK) &&
+			i + 1 < wqe->unproc_sg_num) {
+			pr_err("Invalid alignment for st h2c sg_num:%d, "
+				"len %ld", i, len);
+			return -EINVAL;
+		}
 
 		dma_addr = sg_dma_address(sg) + off;
 		desc->src_addr = dma_addr;
 		desc->len = len;
+		if (descq->xdev->stm_en) {
+			desc->pld_len = len;
 
-		desc->pld_len = len;
-		/* desc->cdh_flags |= S_H2C_DESC_F_ZERO_CDH; */
+			desc->cdh_flags = (1 << S_H2C_DESC_F_ZERO_CDH);
+			desc->cdh_flags |= V_H2C_DESC_NUM_GL(1);
+			desc->cdh_flags |= (1 << S_H2C_DESC_F_REQ_WRB);
+		}
+		pr_debug("idx:%d, len:%ld, addr %p, avail %d\n",
+			descq->pidx, len, (void *)dma_addr, descq->avail);
 
-		desc->cdh_flags |= (1 << S_H2C_DESC_F_ZERO_CDH);
-		desc->cdh_flags |= V_H2C_DESC_NUM_GL(1);
-		
 		descq->pidx++;
 		descq->pidx &= descq->conf.rngsz - 1;
 		descq->avail--;
 
-		descq_h2c_pidx_update(descq, descq->pidx);
-
 		wqe->unproc_bytes -= len;
 		total += len;
 		if (wqe->unproc_bytes == 0 || descq->avail == 0) {
-			wqe->wr.req.count = total;
-			cb->desc_nr = i + 1;
-			cb->offset = total;
-			list_add_tail(&cb->list, &descq->pend_list);
+			i++;
 			break;
 		}
 		desc = (struct qdma_h2c_desc *)descq->desc + descq->pidx;
+		desc->flags = 0;
 	}
-	desc->flags |= S_H2C_DESC_F_EOP;
-	desc->cdh_flags |= (1 << S_H2C_DESC_F_EOT) |
-		(1 << S_H2C_DESC_F_REQ_WRB);
+	/* BUG_ON(i == wqe->unproc_sg_num && wqe->unproc_bytes != 0); */
 
-	BUG_ON(i == wqe->unproc_sg_num && wqe->unproc_bytes != 0);
+	pr_debug("Out of loop %d, ring size %d\n", descq->pidx,
+		descq->conf.rngsz);
+	pr_debug("unproc_sg_num %d, uproc_bytes %lld\n", wqe->unproc_sg_num,
+		wqe->unproc_bytes);
+	if (i > 0) {
+		desc->flags |= S_H2C_DESC_F_EOP;
+		if (descq->xdev->stm_en && wqe->unproc_bytes == 0)
+			desc->cdh_flags |= (1 << S_H2C_DESC_F_EOT);
 
-	wqe->unproc_sg = sg;
-	wqe->unproc_sg_num =  wqe->unproc_sg_num - i;
+		descq_h2c_pidx_update(descq, (descq->pidx) &
+			(descq->conf.rngsz - 1));
+
+		wqe->unproc_sg = sg;
+		wqe->unproc_sg_num =  wqe->unproc_sg_num - i;
+		wqe->wr.req.count = total;
+		cb->desc_nr = i;
+		cb->offset = total;
+		list_add_tail(&cb->list, &descq->pend_list);
+	}
 
 	return 0;
 }
@@ -385,13 +405,16 @@ static void descq_proc_req(struct qdma_wq *queue)
 
 	wqe = wq_next_unproc(queue);
 	while (wqe) {
-		if (wqe->state == QDMA_WQE_STATE_CANCELED)
+		if (wqe->state == QDMA_WQE_STATE_CANCELED ||
+			wqe->state == QDMA_WQE_STATE_CANCELED_HW)
 			goto next;
 		if(descq->conf.st) {
 			if (descq->conf.c2h) {
 				ret = descq_st_c2h_fill(descq, wqe);
 			} else {
+				lock_descq(descq);
 				ret = descq_st_h2c_fill(descq, wqe);
+				unlock_descq(descq);
 			}
 		} else {
 			ret = descq_mm_fill(descq, wqe);
@@ -412,12 +435,13 @@ static int qdma_wqe_complete(struct qdma_request *req, unsigned int bytes_done,
 	struct qdma_wqe			*wqe;
 	struct qdma_wq			*queue;
 	struct qdma_complete_event	compl_evt;
-	unsigned long			flags;
 
 	wqe = container_of(req, struct qdma_wqe, wr.req);
 	queue = wqe->queue;
 
-	spin_lock_irqsave(&queue->wq_lock, flags);
+	pr_debug("WB:  %s %x bytes\n", wqe->wr.req.write? "write": "read",
+		bytes_done);
+	spin_lock(&queue->wq_lock);
 	wqe->done_bytes += bytes_done;
 	queue->sgc_avail += req->sgcnt;
 	if (wqe->done_bytes == wqe->wr.len &&
@@ -434,6 +458,7 @@ static int qdma_wqe_complete(struct qdma_request *req, unsigned int bytes_done,
 		wqe->state = QDMA_WQE_STATE_DONE;
 		wqe = wq_next_pending(queue);
 	} else if (wqe->state == QDMA_WQE_STATE_CANCELED_HW) {
+		wqe->unproc_bytes = 0;
 		if (!wqe->wr.block) {
 			compl_evt.done_bytes = 0;
 			compl_evt.error = QDMA_EVT_CANCELED;
@@ -444,6 +469,7 @@ static int qdma_wqe_complete(struct qdma_request *req, unsigned int bytes_done,
 
 	/* walk through all canceled reqs */
 	while (wqe && wqe->state == QDMA_WQE_STATE_CANCELED) {
+		wqe->unproc_bytes = 0;
 		if (!wqe->wr.block) {
 			compl_evt.done_bytes = 0;
 			compl_evt.error = QDMA_EVT_CANCELED;
@@ -454,7 +480,7 @@ static int qdma_wqe_complete(struct qdma_request *req, unsigned int bytes_done,
 	}
 
 	descq_proc_req(queue);
-	spin_unlock_irqrestore(&queue->wq_lock, flags);
+	spin_unlock(&queue->wq_lock);
 
 	return 0;
 }
@@ -504,6 +530,11 @@ ssize_t qdma_wq_post(struct qdma_wq *queue, struct qdma_wr *wr)
 			break;
 		}
 		off -= sg->length;
+	}
+	if (off & QDMA_ST_H2C_MASK) {
+		pr_err("Invalid alignment.h2c buffer has to be 64B aligned"
+			"offset: %lld", off);
+		return -EINVAL;
 	}
 	BUG_ON(i == sg_num && off > sg->length);
 	sg_num -= i;

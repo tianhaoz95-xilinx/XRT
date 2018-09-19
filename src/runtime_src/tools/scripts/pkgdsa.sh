@@ -136,8 +136,8 @@ if [ "X$opt_xrt" == "X" ]; then
 fi
 
 if [ "X${XILINX_XRT}" == "X" ]; then
-  echo "Environment variable XILINX_XRT is not set.  Please the XRT setup script."
-#  exit 1;
+  echo "Environment variable XILINX_XRT is not set.  Please source the XRT setup script."
+  exit 1;
 fi
 
 # get dsa, version, and revision
@@ -176,17 +176,9 @@ pci_subsystem_id="0x0000"
 dsabinOutputFile=""
 
 XBUTIL=/opt/xilinx/xrt/bin/xbutil
-# On CentOS, stdin/stdout are disabled for post install script. Hence, we
-# have to redirect xbutil output to a temp file for user to monitor the progress.
-flash_progress_file="/tmp/${opt_dsa}.install.log"
-pre_inst_msg="
-NOTE!! DSA may need to be flashed on board(s) during package installation.
-NOTE!! It may take several minutes to flash one board, so please be patient.
-NOTE!! Please monitor the progress and status by checking ${flash_progress_file}
-"
-post_inst_flash_fail_msg="Failed to flash DSA on one or more boards.
-Please flash board manually with 'xbutil flash -a all' after package is installed"
-post_inst_msg="DSA package installed successfully."
+post_inst_msg="DSA package installed successfully.
+Please flash card manually by running below command:
+sudo ${XBUTIL} flash -a ${opt_dsa} -t"
 
 createEntityAttributeArray ()
 {
@@ -382,6 +374,28 @@ initDsaBinEnvAndVars()
     initBMCVar
 }
 
+docentos()
+{
+ echo "Packaging for CentOS..."
+ if [ $opt_dev == 1 ]; then
+     dorpmdev
+ else
+     dodsabin
+     dorpm
+ fi
+}
+
+doubuntu()
+{
+ echo "Packaging for Ubuntu..."
+ if [ $opt_dev == 1 ]; then
+     dodebdev
+ else
+     dodsabin
+     dodeb
+ fi
+}
+
 dodsabin()
 {
     pushd $opt_pkgdir > /dev/null
@@ -472,7 +486,8 @@ dodsabin()
 
 dodebdev()
 {
-    dir=debbuild/$dsa-$version-dev
+    uRel=`lsb_release -r -s`
+    dir=debbuild/$dsa-$version-dev_${uRel}
     mkdir -p $opt_pkgdir/$dir/DEBIAN
 cat <<EOF > $opt_pkgdir/$dir/DEBIAN/control
 
@@ -508,7 +523,8 @@ EOF
 
 dodeb()
 {
-    dir=debbuild/$dsa-$version
+    uRel=`lsb_release -r -s`
+    dir=debbuild/$dsa-$version_${uRel}
     mkdir -p $opt_pkgdir/$dir/DEBIAN
 
 cat <<EOF > $opt_pkgdir/$dir/DEBIAN/control
@@ -524,14 +540,8 @@ Maintainer: Xilinx Inc.
 Section: devel
 EOF
 
-cat <<EOF > $opt_pkgdir/$dir/DEBIAN/preinst
-echo "${pre_inst_msg}"
-EOF
-    chmod 755 $opt_pkgdir/$dir/DEBIAN/preinst
-
 cat <<EOF > $opt_pkgdir/$dir/DEBIAN/postinst
-${XBUTIL} flash -f -a ${opt_dsa} -t ${featureRomTimestamp} > ${flash_progress_file} 2>&1 || echo "${post_inst_flash_fail_msg}"
-echo "${post_inst_msg}"
+echo "${post_inst_msg} ${featureRomTimestamp}"
 EOF
     chmod 755 $opt_pkgdir/$dir/DEBIAN/postinst
 
@@ -596,7 +606,7 @@ if [ "${license_dir}" != "" ] ; then
     cp -f ${license_dir}/*  %{buildroot}/opt/xilinx/platforms/$opt_dsa/license/
   fi
 fi
-
+chmod -R o=g %{buildroot}/opt/xilinx/platforms/$opt_dsa
 
 %files
 %defattr(-,root,root,-)
@@ -638,11 +648,9 @@ requires: xrt >= $opt_xrt
 Xilinx $dsa deployment DSA. Built on $build_date. This DSA depends on xrt >= $opt_xrt.
 
 %pre
-echo "${pre_inst_msg}"
 
 %post
-${XBUTIL} flash -f -a ${opt_dsa} -t ${featureRomTimestamp} > ${flash_progress_file} 2>&1 || echo "${post_inst_flash_fail_msg}"
-echo "${post_inst_msg}"
+echo "${post_inst_msg} ${featureRomTimestamp}"
 
 %install
 mkdir -p %{buildroot}/lib/firmware/xilinx
@@ -655,6 +663,8 @@ if [ "${license_dir}" != "" ] ; then
     cp -f ${license_dir}/*  %{buildroot}/opt/xilinx/dsa/$opt_dsa/license/
   fi
 fi
+chmod -R o=g %{buildroot}/opt/xilinx/dsa/$opt_dsa
+chmod -R o=g %{buildroot}/lib/firmware/xilinx
 
 %files
 %defattr(-,root,root,-)
@@ -680,21 +690,10 @@ EOF
 FLAVOR=`grep '^ID=' /etc/os-release | awk -F= '{print $2}'`
 FLAVOR=`echo $FLAVOR | tr -d '"'`
 
-if [ $FLAVOR == "centos" ]; then
- if [ $opt_dev == 1 ]; then
-     dorpmdev
- else
-     dodsabin
-     dorpm
- fi
-fi
 
-if [ $FLAVOR == "ubuntu" ]; then
- if [ $opt_dev == 1 ]; then
-     dodebdev
- else
-     dodsabin
-     dodeb
- fi
-fi
+case "$FLAVOR" in
+  ("centos") docentos ;;
+  ("ubuntu") doubuntu ;;
+  (*) echo "Unsupported OS '${FLAVOR}'" && exit 1 ;;
+esac
 
