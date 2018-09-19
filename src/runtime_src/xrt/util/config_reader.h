@@ -102,6 +102,13 @@ get_xrt_debug()
   return value;
 }
 
+inline std::string
+get_ila_debug()
+{
+  static std::string value = detail::get_string_value("Debug.ila", "off");
+  return value;
+}
+
 inline bool
 get_profile()
 {
@@ -295,5 +302,3 @@ get_sw_em_driver()
 }}
 
 #endif
-
-

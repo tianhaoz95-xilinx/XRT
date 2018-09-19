@@ -39,7 +39,7 @@ namespace XCL {
    * This function can be called during static global exit()
    * to check if it is no longer safe to rely on the singleton
    *
-   * @return 
+   * @return
    *   true as long as main is running, false after the singleton dtor
    *   has been called during static global destruction.
    */
@@ -110,6 +110,7 @@ namespace XCL {
   public:
     void logFinalTrace(xclPerfMonType type);
     unsigned getProfileNumberSlots(xclPerfMonType type, std::string& deviceName);
+    DeviceInfo getDeviceInfo(std::string& deviceName);
     void getProfileSlotName(xclPerfMonType type, std::string& deviceName,
                             unsigned slotnum, std::string& slotName);
     void getProfileKernelName(const std::string& deviceName, const std::string& cuName, std::string& kernelName);
@@ -149,5 +150,3 @@ namespace XCL {
 };
 
 #endif
-
-

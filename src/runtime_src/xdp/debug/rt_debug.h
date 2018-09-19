@@ -35,7 +35,7 @@ namespace XCL
     const unsigned int DWARF_SECTION  = 1 ;
     const unsigned int BINARY_SECTION = 2 ;
     const unsigned int JSON_SECTION   = 3 ;
-    
+
     struct SectionHeader
     {
       unsigned int type ;
@@ -51,7 +51,7 @@ namespace XCL
       unsigned int numSections ;
       // Followed by N section headers
     } ;
-    
+
   private:
     int uid ;
     int pid ;
@@ -71,7 +71,7 @@ namespace XCL
 
     /**
      * Entry point used by runtime (clCreateProgramWitBinary)
-     * 
+     *
      * @param xclbin
      *   The complete xclbin binary wrapped in a binary API class
      */
@@ -79,9 +79,11 @@ namespace XCL
 
     void setEnvironment() ;
   } ;
-  
+
+  void cb_debug_ila(std::string& deviceName);
+  void register_xocl_debug_callbacks();
+  void launch_labtool(std::string root, unsigned port, unsigned mgmt_instance, std::string optional);
+
 } // end namespace
 
 #endif
-
-

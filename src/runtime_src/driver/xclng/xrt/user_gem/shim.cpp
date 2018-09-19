@@ -148,7 +148,8 @@ xocl::XOCLShim::XOCLShim(unsigned index,
                                                         mOffsets{0x0, 0x0, OCL_CTLR_BASE, 0x0, 0x0},
                                                         mMemoryProfilingNumberSlots(0),
                                                         mAccelProfilingNumberSlots(0),
-                                                        mStallProfilingNumberSlots(0)
+                                                        mStallProfilingNumberSlots(0),
+                                                        mILADebugNumberSlots(0)
 {
     mLogfileName = nullptr;
     init(index, logfileName, verbosity);
@@ -649,6 +650,19 @@ void xocl::XOCLShim::xclSysfsGetDeviceInfo(xclDeviceInfo2 *info)
         i++) {
         info->mOCLFrequency[i] = freqs[i];
     }
+
+    std::string user_name = xcldev::pci_device_scanner::device_list[mBoardNumber].user_name;
+    std::string mgmt_name = xcldev::pci_device_scanner::device_list[mBoardNumber].mgmt_name;
+    unsigned user_instance = xcldev::pci_device_scanner::device_list[mBoardNumber].user_instance;
+    unsigned mgmt_instance = xcldev::pci_device_scanner::device_list[mBoardNumber].mgmt_instance;
+    int user_func = xcldev::pci_device_scanner::device_list[mBoardNumber].user_func;
+    int mgmt_func = xcldev::pci_device_scanner::device_list[mBoardNumber].mgmt_func;
+    std::memcpy(info->mDeviceUserName, user_name.c_str(), user_name.size() + 1);
+    std::memcpy(info->mDeviceMgmtName, mgmt_name.c_str(), mgmt_name.size() + 1);
+    info->mDeviceUserInstance = user_instance;
+    info->mDeviceMgmtInstance = mgmt_instance;
+    info->mDeviceUserFunc = user_func;
+    info->mDeviceMgmtFunc = mgmt_func;
 }
 
 /*
@@ -826,7 +840,7 @@ int xocl::XOCLShim::xclLoadXclBin(const xclBin *buffer)
         std::ifstream errorLog( path );
         if( !errorLog.is_open() ) {
             std::cout << "Error opening: " << path << std::endl;
-            return errno;
+            return -errno;
         } else {
             std::string line;
             std::getline( errorLog, line );
@@ -850,6 +864,7 @@ int xocl::XOCLShim::xclLoadAxlf(const axlf *buffer)
     }
 
     if (!mLocked) {
+         std::cout << __func__ << " ERROR: Device is not locked" << std::endl;
         return -EPERM;
     }
 
@@ -1900,14 +1915,14 @@ int xclRemoveAndScanFPGA( void )
         std::ofstream userFile( dev_name_pf_user );
         if( !userFile.is_open() ) {
             perror( dev_name_pf_user.c_str() );
-            return errno;
+            return -errno;
         }
         userFile << input;
 
         std::ofstream mgmtFile( dev_name_pf_mgmt );
         if( !mgmtFile.is_open() ) {
             perror( dev_name_pf_mgmt.c_str() );
-            return errno;
+            return -errno;
         }
         mgmtFile << input;
     }

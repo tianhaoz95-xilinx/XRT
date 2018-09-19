@@ -105,6 +105,12 @@ enum statusmask {
     STATUS_LAPC_MASK = 0x2
 };
 
+enum powermask {
+	POWER_NONE_MASK = 0x0,
+	POWER_ONCE_MASK = 0x1,
+	POWER_TRACE_MASK = 0x2
+};
+
 static const std::pair<std::string, command> map_pairs[] = {
     std::make_pair("flash", FLASH),
     std::make_pair("program", PROGRAM),
@@ -120,7 +126,7 @@ static const std::pair<std::string, command> map_pairs[] = {
     std::make_pair("scan", SCAN),
     std::make_pair("mem", MEM),
     std::make_pair("dd", DD),
-    std::make_pair("status", STATUS),
+    std::make_pair("status", STATUS)
 };
 
 static const std::pair<std::string, subcommand> subcmd_pairs[] = {
@@ -297,7 +303,7 @@ public:
 
         ss << std::setw(16) << "Power" << "\n";
         power = m_devinfo->mPexCurr*m_devinfo->m12VPex + m_devinfo->mAuxCurr*m_devinfo->m12VAux;
-        if(m_devinfo->mPexCurr != XCL_INVALID_SENSOR_VAL && m_devinfo->mPexCurr != XCL_NO_SENSOR_DEV_LL 
+        if(m_devinfo->mPexCurr != XCL_INVALID_SENSOR_VAL && m_devinfo->mPexCurr != XCL_NO_SENSOR_DEV_LL
            && m_devinfo->m12VPex != XCL_INVALID_SENSOR_VAL && m_devinfo->m12VPex != XCL_NO_SENSOR_DEV_S){
             ss << std::setw(16) << std::to_string((float)power/1000000).substr(0,4)+"W" << "\n";
         }
@@ -442,7 +448,7 @@ public:
         else
             ss << std::setw(16) << std::to_string((float)m_devinfo->m1v8Top/1000).substr(0,4) + "V";
 
-  
+
 
         if(m_devinfo->m0v85 == XCL_NO_SENSOR_DEV_S)
             ss << std::setw(16) << "Not support" << "\n\n";
@@ -465,10 +471,10 @@ public:
 
 
         if(m_devinfo->m12vSW == XCL_NO_SENSOR_DEV_S)
-            ss << std::setw(16) << "Not support"; 
+            ss << std::setw(16) << "Not support";
         else if(m_devinfo->m12vSW == XCL_INVALID_SENSOR_VAL)
             ss << std::setw(16) << "Not support";
-        else 
+        else
             ss << std::setw(16) << std::to_string((float)m_devinfo->m12vSW/1000).substr(0,4) + "V";
 
 
@@ -501,7 +507,7 @@ public:
         m_devinfo_stringize_power(m_devinfo, lines);
 
         ss << std::right << std::setw(80) << std::setfill('#') << std::left << "\n";
-        lines.push_back(ss.str());         
+        lines.push_back(ss.str());
     }
 
     void m_devinfo_stringize(const xclDeviceInfo2 *m_devinfo, std::vector<std::string> &lines) const
@@ -572,14 +578,14 @@ public:
 
     void m_mem_usage_stringize_dynamics(xclDeviceUsage &devstat, const xclDeviceInfo2 *m_devinfo, std::vector<std::string> &lines, int result, unsigned numSupportedMems) const
     {
-        
+
         std::stringstream ss;
         std::ifstream ifs;;
         unsigned int numDDR;
 
 
         const std::string devPath = "/sys/bus/pci/devices/" + xcldev::pci_device_scanner::device_list[ m_idx ].user_name;
-        ss << std::left << std::setw(48) << "Mem Topology" << std::setw(32) << "Device Memory Usage" << "\n"; 
+        ss << std::left << std::setw(48) << "Mem Topology" << std::setw(32) << "Device Memory Usage" << "\n";
         std::string mem_path = devPath + "/mem_topology";
 
         ifs.open( mem_path.c_str(), std::ifstream::binary );
@@ -654,11 +660,11 @@ public:
         xclDeviceUsage devstat;
         int result = xclGetUsageInfo(m_handle, &devstat);
         unsigned numDDR = m_devinfo.mDDRBankCount;
-        
+
         std::vector<std::string> lines, usage_lines;
 
         m_devinfo_stringize(&m_devinfo, lines);
- 
+
         for(auto line:lines){
             ostr << line;
         }

@@ -80,10 +80,15 @@ namespace xocl {
 
     mMemoryProfilingNumberSlots = getIPCountAddrNames(AXI_MM_MONITOR, mPerfMonBaseAddress,
       mPerfMonSlotName, mPerfmonProperties, XSPM_MAX_NUMBER_SLOTS);
-    
+
     mAccelProfilingNumberSlots = getIPCountAddrNames(ACCEL_MONITOR, mAccelMonBaseAddress,
       mAccelMonSlotName, mAccelmonProperties, XSAM_MAX_NUMBER_SLOTS);
-    
+
+    mILADebugNumberSlots = getIPCountAddrNames(ILA, mILADebugBaseAddress,
+      mILADebugSlotName, mILADebugProperties, XSAM_MAX_NUMBER_SLOTS);
+
+    printf("readDebugIpLayout -> mILADebugNumberSlots: %d\n", mILADebugNumberSlots);
+
     mIsDeviceProfiling = (mMemoryProfilingNumberSlots > 0 || mAccelProfilingNumberSlots > 0);
 
     std::string fifoName;
@@ -112,6 +117,13 @@ namespace xocl {
                    << "base address = 0x" << std::hex << mPerfMonBaseAddress[i]
                    << ", name = " << mPerfMonSlotName[i] << std::endl;
       }
+
+      for (unsigned int i = 0; i < mILADebugNumberSlots; ++i) {
+        mLogStream << "debug_ip_layout: ILA " << i << ": "
+                   << "name = " << mILADebugSlotName[i]
+                   << ", properties = " << mILADebugProperties[i] << std::endl;
+      }
+
       for (unsigned int i = 0; i < mAccelProfilingNumberSlots; ++i) {
         mLogStream << "debug_ip_layout: ACCEL_MONITOR slot " << i << ": "
                    << "base address = 0x" << std::hex << mAccelMonBaseAddress[i]
@@ -196,7 +208,7 @@ namespace xocl {
   }
 
   // Read APM performance counters
-  
+
   size_t XOCLShim::xclDebugReadCounters(xclDebugCountersResults* aCounterResults) {
     if (mLogStream.is_open()) {
       mLogStream << __func__ << ", " << std::this_thread::get_id()
@@ -266,5 +278,3 @@ size_t xclDebugReadIPStatus(xclDeviceHandle handle, xclDebugReadType type, void*
   };
   return -1;
 }
-
-

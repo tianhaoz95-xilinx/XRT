@@ -165,14 +165,14 @@ int main(int argc, char *argv[])
 
     argv[0] = const_cast<char *>(exe);
     static struct option long_options[] = {
-	{"read", no_argument, 0, xcldev::MEM_READ},
-	{"write", no_argument, 0, xcldev::MEM_WRITE},
-	{"spm", no_argument, 0, xcldev::STATUS_SPM},
-	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
-	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
-	{"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
+      	{"read", no_argument, 0, xcldev::MEM_READ},
+      	{"write", no_argument, 0, xcldev::MEM_WRITE},
+      	{"spm", no_argument, 0, xcldev::STATUS_SPM},
+      	{"lapc", no_argument, 0, xcldev::STATUS_LAPC},
+      	{"tracefunnel", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+      	{"monitorfifolite", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+      	{"monitorfifofull", no_argument, 0, xcldev::STATUS_UNSUPPORTED},
+        {"accelmonitor", no_argument, 0, xcldev::STATUS_UNSUPPORTED}
     };
     int long_index;
     const char* short_options = "a:b:c:d:e:f:g:hi:m:n:o:p:r:s:"; //don't add numbers
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-                startAddr = std::stoll(optarg, &idx, 0);
+            	startAddr = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-                sizeInBytes = std::stoll(optarg, &idx, 0);
+            	sizeInBytes = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
@@ -663,12 +663,12 @@ static void topPrintUsage(const xcldev::device *dev, xclDeviceUsage& devstat, xc
     dev->m_mem_usage_bar(devstat, lines, 0, devinfo.mDDRBankCount);
 
     dev->m_devinfo_stringize_power(&devinfo, lines);
-    
+
     dev->m_mem_usage_stringize_dynamics(devstat, &devinfo, lines, 0, devinfo.mDDRBankCount);
 
     for(auto line:lines){
             printw("%s\n", line.c_str());
-    } 
+    }
 }
 
 static void topThreadFunc(struct topThreadCtrl *ctrl)

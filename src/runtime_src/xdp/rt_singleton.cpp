@@ -43,13 +43,13 @@ namespace XCL {
     return gActive;
   }
 
-  RTSingleton* 
+  RTSingleton*
   RTSingleton::Instance() {
     if (gDead) {
       std::cout << "RTSingleton is dead\n";
       return nullptr;
     }
-    
+
     static RTSingleton singleton;
     return &singleton;
   }
@@ -73,14 +73,20 @@ namespace XCL {
       appdebug::register_xocl_appdebug_callbacks();
     }
 
+    if (xrt::config::get_ila_debug() != "off") {
+      XCL::register_xocl_debug_callbacks();
+    }
+
     if (applicationProfilingOn()) {
       XCL::register_xocl_profile_callbacks();
     }
+
 #ifdef PMD_OCL
     return;
 #endif
 
     gActive = true;
+
   };
 
   RTSingleton::~RTSingleton() {
@@ -194,7 +200,7 @@ namespace XCL {
 
     while (ret == -1 && iter < max_iter) {
       ret = xdp::profile::platform::log_device_trace(Platform.get(),type, true);
-      if (ret == -1) 
+      if (ret == -1)
         std::this_thread::sleep_for(std::chrono::milliseconds(wait_msec));
       iter++;
     }
@@ -206,6 +212,11 @@ namespace XCL {
         deviceName, type);
     //XOCL_DEBUG(std::cout,"Profiling: type = "type," slots = ",numSlots,"\n");
     return numSlots;
+  }
+
+  DeviceInfo RTSingleton::getDeviceInfo(std::string& deviceName) {
+    DeviceInfo deviceInfo = xdp::profile::platform::get_device_info(Platform.get(), deviceName);
+    return deviceInfo;
   }
 
   void RTSingleton::getProfileSlotName(xclPerfMonType type, std::string& deviceName,
@@ -262,6 +273,3 @@ namespace XCL {
       str = "System Run";
   }
 };
-
-
-
