@@ -235,16 +235,27 @@ namespace XCL
     for (int i = 0; i < numILA; ++i) {
       std::string monitorName;
       rts->getProfileSlotName(XCL_PERF_MON_ILA, deviceName, i, monitorName);
-      launch_labtool("./labtool_" + std::to_string(i), 3000, mgmt_instance, "optional arguments");
+      std::string workspace_root = "./labtool_" + deviceName + "_" + std::to_string(i);
+      std::string optional_arguments = "optional arguments";
+      LabtoolContorller* labtool_instance = new LabtoolContorller();
+      labtool_instance->init(workspace_root, 3000, mgmt_instance, optional_arguments);
+      labtool_instance->launch();
+      delete labtool_instance;
     }
   }
 
-  void launch_labtool(std::string root, unsigned port, unsigned mgmt_instance, std::string optional) {
-    // *** Jake: Insert code here ***
-    std::cout << "launch labtool in: " << root << std::endl;
-    std::cout << " with port: " << port << std::endl;
-    std::cout << " with mgmt_instance: " << mgmt_instance << std::endl;
-    std::cout << " and optional argument: " << optional << std::endl;
+  void LabtoolContorller::init(std::string& workspace, unsigned port, unsigned instance, std::string& optional) {
+    workspace_root = workspace;
+    hardware_server_port = port;
+    driver_instance = instance;
+    optional_ini_parameters = optional;
+  }
+
+  void LabtoolContorller::launch() {
+    std::cout << "launch labtool in: " << workspace_root << std::endl;
+    std::cout << "\twith port: " << hardware_server_port << std::endl;
+    std::cout << "\twith mgmt_instance: " << driver_instance << std::endl;
+    std::cout << "\tand optional argument: " << optional_ini_parameters << std::endl;
   }
 
   void register_xocl_debug_callbacks()
