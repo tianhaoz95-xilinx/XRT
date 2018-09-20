@@ -201,14 +201,37 @@ namespace XCL
   void cb_debug_ila(std::string& deviceName)
   {
     auto rts = XCL::RTSingleton::Instance();
-    unsigned numILA = rts->getProfileNumberSlots(XCL_PERF_MON_ILA, deviceName);
+    auto device_info = rts->getDeviceInfo(deviceName);
+    unsigned mgmt_instance = device_info.mDeviceMgmtInstance;
+    std::string user_name = std::string(device_info.mDeviceUserName);
+    std::string debug_ip_layout_path = "/sys/bus/pci/devices/" + user_name + "/debug_ip_layout";
+    unsigned numILA = 0;
+    debug_ip_layout *map;
+
+    std::cout << "mgmt_instance: " << mgmt_instance << std::endl;
+    std::cout << "user_name: " << user_name << std::endl;
+    std::cout << debug_ip_layout_path << std::endl;
+
+    std::ifstream debug_ip_layout_file(debug_ip_layout_path.c_str(), std::ifstream::binary);
+    uint32_t count = 0;
+    char buffer[65536];
+    if( debug_ip_layout_file.good() ) {
+        debug_ip_layout_file.read(buffer, 65536);
+        if (debug_ip_layout_file.gcount() > 0) {
+            map = (debug_ip_layout*)(buffer);
+            for( unsigned int i = 0; i < map->m_count; i++ ) {
+                if(map->m_debug_ip_data[i].m_type == DEBUG_IP_TYPE::ILA) {
+                  ++numILA;
+                }
+            }
+        }
+        debug_ip_layout_file.close();
+    }
 
     if (numILA == 0) {
       return;
     }
 
-    auto device_info = rts->getDeviceInfo(deviceName);
-    unsigned mgmt_instance = device_info.mDeviceMgmtInstance;
     for (int i = 0; i < numILA; ++i) {
       std::string monitorName;
       rts->getProfileSlotName(XCL_PERF_MON_ILA, deviceName, i, monitorName);
@@ -218,9 +241,9 @@ namespace XCL
 
   void launch_labtool(std::string root, unsigned port, unsigned mgmt_instance, std::string optional) {
     // *** Jake: Insert code here ***
-    std::cout << "launch labtool in " << root;
-    std::cout << " with port " << port;
-    std::cout << " with mgmt_instance" << mgmt_instance;
+    std::cout << "launch labtool in: " << root << std::endl;
+    std::cout << " with port: " << port << std::endl;
+    std::cout << " with mgmt_instance: " << mgmt_instance << std::endl;
     std::cout << " and optional argument: " << optional << std::endl;
   }
 

@@ -120,6 +120,9 @@ namespace XCL {
     double getWriteMaxBandwidthMBps();
 
   public:
+    void configDeviceInfo(std::string& deivceName);
+
+  public:
     ~RTSingleton();
   private:
     RTSingleton();
