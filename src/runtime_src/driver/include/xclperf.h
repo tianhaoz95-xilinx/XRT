@@ -429,6 +429,7 @@ typedef struct {
   unsigned short mFanSpeed;
   bool mMigCalib;
   unsigned long long mXMCVersion;
+  unsigned long long mMBVersion;
   unsigned short m12VPex;
   unsigned short m12VAux;
   unsigned long long mPexCurr;
@@ -457,7 +458,10 @@ typedef struct {
   unsigned short mPCIeLinkSpeedMax;
   unsigned short mVccIntVol;
   unsigned short mVccIntCurr;
-	unsigned mDeviceUserInstance;
+  unsigned short mNumCDMA;
+  char mDeviceUserName[256];
+  char mDeviceMgmtName[256];
+  unsigned mDeviceUserInstance;
   unsigned mDeviceMgmtInstance;
   int mDeviceUserFunc;
   int mDeviceMgmtFunc;

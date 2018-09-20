@@ -1651,7 +1651,7 @@ ssize_t xocl::XOCLShim::xclReadQueue(uint64_t q_hdl, xclQueueRequest *wr)
 
             cbs[0] = &cb;
             rc = io_submit(mAioContext, 1, cbs);
-        } else 
+        } else
         	rc = readv((int)q_hdl, iov, 2);
     }
     return rc;

@@ -80,9 +80,21 @@ namespace XCL
     void setEnvironment() ;
   } ;
 
+  class LabtoolContorller {
+  public:
+    void init(std::string& workspace, unsigned port, unsigned instance, std::string& optional);
+    void launch();
+    void finish();
+    void cleanup();
+  private:
+    std::string workspace_root;
+    unsigned hardware_server_port;
+    unsigned driver_instance;
+    std::string optional_ini_parameters;
+  };
+
   void cb_debug_ila(std::string& deviceName);
   void register_xocl_debug_callbacks();
-  void launch_labtool(std::string root, unsigned port, unsigned mgmt_instance, std::string optional);
 
 } // end namespace
 

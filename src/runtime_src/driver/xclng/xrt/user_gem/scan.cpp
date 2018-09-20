@@ -521,7 +521,7 @@ int xcldev::pci_device_scanner::get_feature_rom_bar_offset(unsigned int devIdx,
                     ret = 0;
                     break;
                 }
-            } 
+            }
         }
     }
 

@@ -272,4 +272,9 @@ namespace XCL {
     else
       str = "System Run";
   }
+
+  void RTSingleton::configDeviceInfo(std::string& deviceName) {
+    auto device_info = getDeviceInfo(deviceName);
+    std::cout << device_info.mMagic << std::endl;
+  }
 };
