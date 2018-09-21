@@ -130,8 +130,8 @@ namespace XCL {
     double getWriteMaxBandwidthMBps();
 
   public:
-    void registerLabtool(std::string ID, LabtoolContorller* instance);
-    LabtoolContorller* getLabtool(std::string ID);
+    void registerLabtool(LabtoolController* instance);
+    LabtoolController* getLabtool(std::string ID);
     void removeLabtool(std::string ID);
     void cleanupLabtoolPool();
 
@@ -166,7 +166,7 @@ namespace XCL {
     bool OclProfilingOn = true;
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
-    std::unordered_map<std::string, LabtoolContorller*> labtoolPool;
+    std::unordered_map<std::string, LabtoolController*> labtoolPool;
     std::unordered_map<std::string, DeviceConfig> configDict;
   };
 };

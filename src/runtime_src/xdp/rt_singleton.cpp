@@ -90,6 +90,8 @@ namespace XCL {
   };
 
   RTSingleton::~RTSingleton() {
+    cleanupLabtoolPool();
+
     gActive = false;
 
     endProfiling();
@@ -320,5 +322,17 @@ namespace XCL {
       return {};
     }
     return configDict[deviceName];
+  }
+
+  void RTSingleton::registerLabtool(LabtoolController* instance) {
+    labtoolPool[instance->getID()] = instance;
+  }
+
+  void RTSingleton::cleanupLabtoolPool() {
+    for (auto it = labtoolPool.begin(); it != labtoolPool.end(); ++it) {
+      it->second->cleanup();
+      delete it->second;
+    }
+    labtoolPool.clear();
   }
 };

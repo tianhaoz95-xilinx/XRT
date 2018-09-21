@@ -207,21 +207,29 @@ namespace XCL
     int port = xrt::config::get_ila_port();
     auto config = rts->getDeviceConfig(deviceName);
     if (!config.debugIP[DEBUG_IP_TYPE::ILA].empty()) {
-      LabtoolContorller* labtool_instance = new LabtoolContorller();
+      LabtoolController* labtool_instance = new LabtoolController(deviceName);
       labtool_instance->init(workspace_root, port, config.mgmt_instance, optional_arguments);
       labtool_instance->launch();
-      delete labtool_instance;
+      rts->registerLabtool(labtool_instance);
     }
   }
 
-  void LabtoolContorller::init(std::string& workspace, unsigned port, unsigned instance, std::string& optional) {
+  void LabtoolController::init(std::string& workspace, unsigned port, unsigned instance, std::string& optional) {
     workspace_root = workspace;
     hardware_server_port = port;
     driver_instance = instance;
     optional_ini_parameters = optional;
   }
 
-  void LabtoolContorller::launch() {
+  std::string LabtoolController::getID() {
+    return ID;
+  }
+
+  void LabtoolController::cleanup() {
+    return;
+  }
+
+  void LabtoolController::launch() {
     std::cout << "launch labtool in: " << workspace_root << std::endl;
     std::cout << "\twith port: " << hardware_server_port << std::endl;
     std::cout << "\twith mgmt_instance: " << driver_instance << std::endl;
