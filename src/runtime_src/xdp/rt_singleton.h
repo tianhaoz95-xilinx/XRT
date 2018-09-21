@@ -52,6 +52,7 @@ namespace XCL {
     std::string mgmt_name;
     unsigned mgmt_instance;
     unsigned user_instance;
+    std::unordered_map<DEBUG_IP_TYPE, std::vector<debug_ip_data>> debugIP;
   };
 
   class RTSingleton {
@@ -136,6 +137,7 @@ namespace XCL {
 
   public:
     void configDeviceInfo(std::string& deivceName);
+    DeviceConfig getDeviceConfig(std::string& deivceName);
 
   public:
     ~RTSingleton();
