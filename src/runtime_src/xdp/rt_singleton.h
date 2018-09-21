@@ -52,6 +52,7 @@ namespace XCL {
     std::string mgmt_name;
     unsigned mgmt_instance;
     unsigned user_instance;
+    std::unordered_map<DEBUG_IP_TYPE, std::vector<debug_ip_data>> debugIP;
   };
 
   class RTSingleton {
@@ -129,13 +130,15 @@ namespace XCL {
     double getWriteMaxBandwidthMBps();
 
   public:
-    void registerLabtool(std::string ID, LabtoolContorller* instance);
-    LabtoolContorller* getLabtool(std::string ID);
-    void removeLabtool(std::string ID);
+    void registerLabtool(LabtoolController* instance);
+    int getLabtoolCount();
+    LabtoolController* getLabtool(std::string& ID);
+    void removeLabtool(std::string& ID);
     void cleanupLabtoolPool();
 
   public:
     void configDeviceInfo(std::string& deivceName);
+    DeviceConfig getDeviceConfig(std::string& deivceName);
 
   public:
     ~RTSingleton();
@@ -164,7 +167,7 @@ namespace XCL {
     bool OclProfilingOn = true;
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
-    std::unordered_map<std::string, LabtoolContorller*> labtoolPool;
+    std::unordered_map<std::string, LabtoolController*> labtoolPool;
     std::unordered_map<std::string, DeviceConfig> configDict;
   };
 };

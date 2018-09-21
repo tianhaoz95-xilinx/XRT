@@ -201,56 +201,35 @@ namespace XCL
   void cb_debug_ila(std::string& deviceName)
   {
     auto rts = XCL::RTSingleton::Instance();
-    auto device_info = rts->getDeviceInfo(deviceName);
-    unsigned mgmt_instance = device_info.mDeviceMgmtInstance;
-    std::string user_name = std::string(device_info.mDeviceUserName);
-    std::string debug_ip_layout_path = "/sys/bus/pci/devices/" + user_name + "/debug_ip_layout";
-    unsigned numILA = 0;
-    debug_ip_layout *map;
-
-    std::cout << "mgmt_instance: " << mgmt_instance << std::endl;
-    std::cout << "user_name: " << user_name << std::endl;
-    std::cout << debug_ip_layout_path << std::endl;
-    std::cout << xrt::config::get_ila_port() << std::endl;
-    std::cout << xrt::config::get_ila_optional() << std::endl;
-
-    std::ifstream debug_ip_layout_file(debug_ip_layout_path.c_str(), std::ifstream::binary);
-    uint32_t count = 0;
-    char buffer[65536];
-    std::unordered_map<std::string, int> ila_dict;
-    if( debug_ip_layout_file.good() ) {
-        debug_ip_layout_file.read(buffer, 65536);
-        if (debug_ip_layout_file.gcount() > 0) {
-            map = (debug_ip_layout*)(buffer);
-            for( unsigned int i = 0; i < map->m_count; i++ ) {
-              std::string name = std::string((char*)map->m_debug_ip_data[i].m_name);
-              std::cout << name << std::endl;
-              if(map->m_debug_ip_data[i].m_type == DEBUG_IP_TYPE::ILA) {
-                ++numILA;
-              }
-            }
-        }
-        debug_ip_layout_file.close();
-    }
-
-    if (numILA > 0) {
-      std::string workspace_root = "./labtool_" + deviceName;
-      std::string optional_arguments = "optional arguments";
-      LabtoolContorller* labtool_instance = new LabtoolContorller();
-      labtool_instance->init(workspace_root, 3000, mgmt_instance, optional_arguments);
+    rts->configDeviceInfo(deviceName);
+    std::string workspace_root = "./labtool_" + deviceName;
+    std::string optional_arguments = xrt::config::get_ila_optional();
+    int port = xrt::config::get_ila_port();
+    auto config = rts->getDeviceConfig(deviceName);
+    if (!config.debugIP[DEBUG_IP_TYPE::ILA].empty() && rts->getLabtoolCount() == 0) {
+      LabtoolController* labtool_instance = new LabtoolController(deviceName);
+      labtool_instance->init(workspace_root, port, config.mgmt_instance, optional_arguments);
       labtool_instance->launch();
-      delete labtool_instance;
+      rts->registerLabtool(labtool_instance);
     }
   }
 
-  void LabtoolContorller::init(std::string& workspace, unsigned port, unsigned instance, std::string& optional) {
+  void LabtoolController::init(std::string& workspace, unsigned port, unsigned instance, std::string& optional) {
     workspace_root = workspace;
     hardware_server_port = port;
     driver_instance = instance;
     optional_ini_parameters = optional;
   }
 
-  void LabtoolContorller::launch() {
+  std::string LabtoolController::getID() {
+    return ID;
+  }
+
+  void LabtoolController::cleanup() {
+    return;
+  }
+
+  void LabtoolController::launch() {
     std::cout << "launch labtool in: " << workspace_root << std::endl;
     std::cout << "\twith port: " << hardware_server_port << std::endl;
     std::cout << "\twith mgmt_instance: " << driver_instance << std::endl;
