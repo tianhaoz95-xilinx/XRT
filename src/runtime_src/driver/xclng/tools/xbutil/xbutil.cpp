@@ -90,6 +90,7 @@ int str2index(const char *arg, unsigned& index)
 
 int main(int argc, char *argv[])
 {
+	unsigned sampleFreq = 1;
     unsigned index = 0xffffffff;
     unsigned regionIndex = 0xffffffff;
     unsigned computeIndex = 0xffffffff;
@@ -99,6 +100,7 @@ int main(int argc, char *argv[])
     unsigned int pattern_byte = 'J';//Rather than zero; writing char 'J' by default
     size_t sizeInBytes = 0;
     std::string outMemReadFile = "memread.out";
+    std::string powerTraceFile = "power_trace.csv";
     std::string flashType = ""; // unset and empty by default
     std::string mcsFile1, mcsFile2;
     std::string xclbin;
@@ -226,6 +228,22 @@ int main(int argc, char *argv[])
             std::cout << "INFO: No Status information available for IP: " << long_options[long_index].name << "\n";
             return 0;
         }
+        case xcldev::POWER_ONCE : {
+			if (cmd != xcldev::POWER) {
+				std::cout << "ERROR: Option '" << long_options[long_index].name << "' cannot be used with command " << cmdname << "\n";
+				return -1;
+			}
+			ipmask |= static_cast<unsigned int>(xcldev::POWER_ONCE_MASK);
+			break;
+		}
+		case xcldev::POWER_TRACE : {
+			if (cmd != xcldev::POWER) {
+				std::cout << "ERROR: Option '" << long_options[long_index].name << "' cannot be used with command " << cmdname << "\n";
+				return -1;
+			}
+			ipmask |= static_cast<unsigned int>(xcldev::POWER_TRACE_MASK);
+			break;
+		}
             //short options are dealt here
         case 'a':{
             if (cmd != xcldev::MEM) {
@@ -251,6 +269,9 @@ int main(int argc, char *argv[])
             if (cmd == xcldev::FLASH) {
                 flashType = optarg;
                 break;
+            } else if (cmd == xcldev::POWER) {
+            	powerTraceFile = optarg;
+            	break;
             } else if (cmd != xcldev::MEM || subcmd != xcldev::MEM_READ) {
                 std::cout << "ERROR: '-o' not applicable for this command\n";
                 return -1;
@@ -322,11 +343,16 @@ int main(int argc, char *argv[])
             xclbin = optarg;
             break;
         case 'f':
-            if (cmd != xcldev::CLOCK) {
-                std::cout << "ERROR: '-f' only allowed with 'clock' command\n";
+            if (cmd != xcldev::CLOCK && cmd != xcldev::POWER) {
+                std::cout << "ERROR: '-f' only allowed with 'clock' or 'power --trace' command\n";
                 return -1;
             }
-            targetFreq[0] = std::atoi(optarg);
+            if (cmd == xcldev::CLOCK) {
+            	targetFreq[0] = std::atoi(optarg);
+            }
+            if (cmd == xcldev::POWER) {
+            	sampleFreq = std::atoi(optarg);
+            }
             break;
         case 'g':
             if (cmd != xcldev::CLOCK) {
@@ -562,6 +588,19 @@ int main(int argc, char *argv[])
             result = deviceVec[index]->readSPMCounters();
         }
         break;
+    case xcldev::POWER:
+    	if (ipmask == xcldev::POWER_NONE_MASK) {
+    		result = -1;
+    	}
+    	if (ipmask == xcldev::POWER_ONCE_MASK) {
+    		std::cout << "power once running" << std::endl;
+    		result = deviceVec[index]->readPowerOnce();
+    	}
+    	if (ipmask == xcldev::POWER_TRACE_MASK) {
+    		std::cout << "power trace running" << std::endl;
+    		result = deviceVec[index]->readPowerTrace(sampleFreq, powerTraceFile);
+    	}
+    	break;
     default:
         std::cout << "ERROR: Not implemented\n";
         result = -1;

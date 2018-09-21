@@ -165,6 +165,7 @@ public:
     return get_name() + "-" + std::to_string(m_uid);
   }
 
+
   DeviceInfo
   get_device_info()
   {

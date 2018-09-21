@@ -90,14 +90,17 @@ enum command {
     MEM,
     DD,
     STATUS,
-    CMD_MAX
+    CMD_MAX,
+	  POWER
 };
 enum subcommand {
     MEM_READ = 0,
     MEM_WRITE,
     STATUS_SPM,
     STATUS_LAPC,
-    STATUS_UNSUPPORTED
+    STATUS_UNSUPPORTED,
+	POWER_ONCE,
+	POWER_TRACE
 };
 enum statusmask {
     STATUS_NONE_MASK = 0x0,
@@ -133,7 +136,9 @@ static const std::pair<std::string, subcommand> subcmd_pairs[] = {
     std::make_pair("read", MEM_READ),
     std::make_pair("write", MEM_WRITE),
     std::make_pair("spm", STATUS_SPM),
-    std::make_pair("lapc", STATUS_LAPC)
+    std::make_pair("lapc", STATUS_LAPC),
+	std::make_pair("once", POWER_ONCE),
+	std::make_pair("trace", POWER_TRACE)
 };
 
 static const std::vector<std::pair<std::string, std::string>> flash_types = {
@@ -1036,6 +1041,16 @@ public:
 
    //Debug related functionality.
     uint32_t getIPCountAddrNames(int type, std::vector<uint64_t> *baseAddress, std::vector<std::string> * portNames);
+
+    struct InstPowerStatus {
+    	float avgPowerConsumption;
+    	float instPowerConsumption;
+    	float peakPowerConsumption;
+    };
+
+    InstPowerStatus readPowerStatus();
+    int readPowerOnce();
+    int readPowerTrace(int sampleFreq, std::string filename);
 
     std::pair<size_t, size_t> getCUNamePortName (std::vector<std::string>& aSlotNames,
                              std::vector< std::pair<std::string, std::string> >& aCUNamePortNames);
