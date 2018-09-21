@@ -275,6 +275,12 @@ namespace XCL {
 
   void RTSingleton::configDeviceInfo(std::string& deviceName) {
     auto device_info = getDeviceInfo(deviceName);
-    std::cout << device_info.mMagic << std::endl;
+    DeviceConfig config;
+    config.mgmt_instance = device_info.mDeviceMgmtInstance;
+    config.user_instance = device_info.mDeviceMgmtInstance - 1;
+    config.user_name = std::string(device_info.mDeviceUserName);
+    config.mgmt_name = std::string(device_info.mDeviceMgmtName);
+    config.device_name = deviceName;
+    configDict[deviceName] = config;
   }
 };

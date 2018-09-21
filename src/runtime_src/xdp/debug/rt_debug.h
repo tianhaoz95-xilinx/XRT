@@ -19,6 +19,7 @@
 #define __XILINX_RT_DEBUG_H
 
 #include <string>
+#include <unordered_map>
 
 #include "xclbin/binary.h"
 
