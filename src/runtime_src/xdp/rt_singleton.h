@@ -21,6 +21,7 @@
 #include <CL/opencl.h>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include "xdp/profile/rt_profile.h"
 #include "xdp/debug/rt_debug.h"
 #include "driver/include/xclperf.h"
@@ -44,6 +45,14 @@ namespace XCL {
    *   has been called during static global destruction.
    */
   bool active();
+
+  struct DeviceConfig {
+    std::string device_name;
+    std::string user_name;
+    std::string mgmt_name;
+    unsigned mgmt_instance;
+    unsigned user_instance;
+  };
 
   class RTSingleton {
   public:
@@ -155,7 +164,8 @@ namespace XCL {
     bool OclProfilingOn = true;
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
-    std::map<std::string, LabtoolContorller*> labtoolPool;
+    std::unordered_map<std::string, LabtoolContorller*> labtoolPool;
+    std::unordered_map<std::string, DeviceConfig> configDict;
   };
 };
 

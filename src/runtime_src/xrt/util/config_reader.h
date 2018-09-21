@@ -109,6 +109,20 @@ get_ila_debug()
   return value;
 }
 
+inline unsigned int
+get_ila_port()
+{
+  static unsigned int value = detail::get_uint_value("Debug.ila_port",5000);
+  return value;
+}
+
+inline std::string
+get_ila_optional()
+{
+  static std::string value = detail::get_string_value("Debug.ila_optional", "none");
+  return value;
+}
+
 inline bool
 get_profile()
 {

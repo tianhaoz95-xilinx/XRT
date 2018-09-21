@@ -211,31 +211,30 @@ namespace XCL
     std::cout << "mgmt_instance: " << mgmt_instance << std::endl;
     std::cout << "user_name: " << user_name << std::endl;
     std::cout << debug_ip_layout_path << std::endl;
+    std::cout << xrt::config::get_ila_port() << std::endl;
+    std::cout << xrt::config::get_ila_optional() << std::endl;
 
     std::ifstream debug_ip_layout_file(debug_ip_layout_path.c_str(), std::ifstream::binary);
     uint32_t count = 0;
     char buffer[65536];
+    std::unordered_map<std::string, int> ila_dict;
     if( debug_ip_layout_file.good() ) {
         debug_ip_layout_file.read(buffer, 65536);
         if (debug_ip_layout_file.gcount() > 0) {
             map = (debug_ip_layout*)(buffer);
             for( unsigned int i = 0; i < map->m_count; i++ ) {
-                if(map->m_debug_ip_data[i].m_type == DEBUG_IP_TYPE::ILA) {
-                  ++numILA;
-                }
+              std::string name = std::string((char*)map->m_debug_ip_data[i].m_name);
+              std::cout << name << std::endl;
+              if(map->m_debug_ip_data[i].m_type == DEBUG_IP_TYPE::ILA) {
+                ++numILA;
+              }
             }
         }
         debug_ip_layout_file.close();
     }
 
-    if (numILA == 0) {
-      return;
-    }
-
-    for (int i = 0; i < numILA; ++i) {
-      std::string monitorName;
-      rts->getProfileSlotName(XCL_PERF_MON_ILA, deviceName, i, monitorName);
-      std::string workspace_root = "./labtool_" + deviceName + "_" + std::to_string(i);
+    if (numILA > 0) {
+      std::string workspace_root = "./labtool_" + deviceName;
       std::string optional_arguments = "optional arguments";
       LabtoolContorller* labtool_instance = new LabtoolContorller();
       labtool_instance->init(workspace_root, 3000, mgmt_instance, optional_arguments);
