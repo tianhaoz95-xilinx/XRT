@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "xclbin/binary.h"
+#include "ila.h"
 
 namespace XCL
 {
@@ -80,22 +81,6 @@ namespace XCL
 
     void setEnvironment() ;
   } ;
-
-  class LabtoolController {
-  public:
-    LabtoolController(std::string& ID_init) : ID(ID_init) {};
-    void init(std::string& workspace, unsigned port, unsigned instance, std::string& optional);
-    std::string getID();
-    void launch();
-    void finish();
-    void cleanup();
-  private:
-    std::string ID;
-    std::string workspace_root;
-    unsigned hardware_server_port;
-    unsigned driver_instance;
-    std::string optional_ini_parameters;
-  };
 
   void cb_debug_ila(std::string& deviceName);
   void register_xocl_debug_callbacks();
