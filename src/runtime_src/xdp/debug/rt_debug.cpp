@@ -206,7 +206,7 @@ namespace XCL
     std::string optional_arguments = xrt::config::get_ila_optional();
     int port = xrt::config::get_ila_port();
     auto config = rts->getDeviceConfig(deviceName);
-    if (!config.debugIP[DEBUG_IP_TYPE::ILA].empty()) {
+    if (!config.debugIP[DEBUG_IP_TYPE::ILA].empty() && rts->getLabtoolCount() == 0) {
       LabtoolController* labtool_instance = new LabtoolController(deviceName);
       labtool_instance->init(workspace_root, port, config.mgmt_instance, optional_arguments);
       labtool_instance->launch();

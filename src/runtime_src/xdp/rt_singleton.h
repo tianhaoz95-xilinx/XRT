@@ -131,8 +131,9 @@ namespace XCL {
 
   public:
     void registerLabtool(LabtoolController* instance);
-    LabtoolController* getLabtool(std::string ID);
-    void removeLabtool(std::string ID);
+    int getLabtoolCount();
+    LabtoolController* getLabtool(std::string& ID);
+    void removeLabtool(std::string& ID);
     void cleanupLabtoolPool();
 
   public:

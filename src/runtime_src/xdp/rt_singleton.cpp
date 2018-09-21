@@ -328,6 +328,27 @@ namespace XCL {
     labtoolPool[instance->getID()] = instance;
   }
 
+  LabtoolController* RTSingleton::getLabtool(std::string& ID) {
+    auto target = labtoolPool.find(ID);
+    if (target == labtoolPool.end()) {
+      return NULL;
+    }
+    return target->second;
+  }
+
+  void RTSingleton::removeLabtool(std::string& ID) {
+    auto target = labtoolPool.find(ID);
+    if (target == labtoolPool.end()) {
+      return;
+    }
+    delete target->second;
+    labtoolPool.erase(target);
+  }
+
+  int RTSingleton::getLabtoolCount() {
+    return labtoolPool.size();
+  }
+
   void RTSingleton::cleanupLabtoolPool() {
     for (auto it = labtoolPool.begin(); it != labtoolPool.end(); ++it) {
       it->second->cleanup();
