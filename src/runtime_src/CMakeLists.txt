@@ -62,6 +62,7 @@ target_link_libraries(xilinxopencl
   pthread
   crypt
   rt
+  tcl
   )
 
 install (TARGETS xilinxopencl xdp LIBRARY DESTINATION ${XRT_INSTALL_DIR}/lib)
