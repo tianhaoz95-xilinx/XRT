@@ -8,6 +8,8 @@
 # The default trigger condition captures any AXI traffic
 #
 #
+# TODO: Can we simplify this file or add some examples so it is easy
+#       for a new user to modify the settings for various AXI trigger conditions?
 
 foreach ila [get_hw_ilas -of_objects [get_hw_devices debug_bridge_0]] {
   set is_system_ila 0

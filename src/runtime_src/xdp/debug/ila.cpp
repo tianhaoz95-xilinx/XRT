@@ -20,15 +20,16 @@
 
 #include <stdexcept>
 
-
-// NOTE TO JAKE: 
+// TODO: Tcl NOTE TO JAKE: 
 // I'm not sure if <tcl.h> will be allowed (inclusion of Tcl interpreter)
 // We may need to c++ify the code that currently is using Tcl in this file.
 // This causes inclusion of -ltcl in the makefiles, which could be a problem when
 // we start supporting windows. Also check this on Ubuntu...
-//
 #include <tcl.h>
 //~~~~~~~~~~~~~~
+
+// TODO: Change couts to a message manager output conditional on some verbosity param
+// TODO: LTX handling - need to get or compute LTX filename (currently hardcoded)
 
 namespace bfs = boost::filesystem;
 
@@ -132,45 +133,57 @@ namespace {
     dst << src.rdbuf();
     src.close();
     dst.close();
-    std::cout << "copy " << srcFile << " -> " << dstFile << "\n";
   }
 
-
-  // TODO: DEPENDENCY ALERT - 
-  // This is code for getting a demo up and running more quickly. 
-  // Unless we can embed a tcl interpreter in the xdp code, we need to c++ify 
-  // this code before checkin...
-  Tcl_Interp *myinterp = nullptr;
-
-  void create_interp()
-  {
-    if (myinterp == nullptr) {
-      myinterp = Tcl_CreateInterp();
-      std::string tclCmd = "source " + get_client_tcl_file();
-      int result = Tcl_Eval(myinterp, tclCmd.c_str());
-      if (result != TCL_OK) {
-        throw std::runtime_error("Could not create Tcl interpreter");
-      }
-    }
-  }
-
-  void delete_interp()
-  {
-    if (myinterp) {
-      Tcl_DeleteInterp(myinterp);
-    }
-  }
-
-  int run_tcl_cmd(const std::string& cmd)
-  {
-    return Tcl_Eval(myinterp, cmd.c_str());
-  }
 
 }
 
 
 namespace XCL
 {
+  ////////////////////////////////////////////////////////////////////////////
+  // InterpGuard -
+  //   Helper - Ensure we property create and delete the Tcl interpreter
+  //
+  // TODO: TCL DEPENDENCY ALERT - 
+  // This is code for getting a demo up and running more quickly. 
+  // Unless we can embed a tcl interpreter in the xdp code, we may 
+  // need to c++ify this code before checkin...
+  //
+  class InterpGuard
+  {
+    public:
+      InterpGuard()
+        : mp_interp(nullptr)
+      {
+        mp_interp = Tcl_CreateInterp();
+        std::string tclCmd = "source " + get_client_tcl_file();
+        int result = Tcl_Eval(mp_interp, tclCmd.c_str());
+        if (result != TCL_OK) {
+          throw std::runtime_error("Could not create Tcl interpreter");
+        }
+      }
+
+      ~InterpGuard()
+      {
+        if (mp_interp) {
+          Tcl_DeleteInterp(mp_interp);
+        }
+        mp_interp = nullptr;
+      }
+
+      int exec_tcl(const std::string& cmd)
+      {
+        if (!mp_interp) {
+          throw std::runtime_error("Tcl interpreter does not exist");
+        }
+        return Tcl_Eval(mp_interp, cmd.c_str());
+      }
+
+    private:
+      Tcl_Interp *mp_interp;
+  };
+
   ////////////////////////////////////////////////////////////////////////////
   // BackgroundProcess - 
   //   Helper that runs <cmd> [<args...>] in the background using fork() 
@@ -189,12 +202,16 @@ namespace XCL
   //       p.setDir(directory)    <-- optionally change dir before execution
   //       p.start();             <-- required to start process
   //       ...
-  //       p.end(); <-- optional, called in destructor
+  //       p.wait();              <-- optional, block for process to end
+  //       p.end();               <-- optional, called in destructor
   //
   //  TODO: Error and exception handler for bad return values
   //  TODO: isRunning() still needs some work for a process that ends early
   //  TODO: need to kill process group (killpg, setpgrp, setsid). I am still getting
   //        lingering processes after exit sometimes.
+  //  TODO: interprocess mutex that will throw an exception if a conflicting
+  //        process tries to start the same program like xvc_pcie while another
+  //        is currently running
   //
   class BackgroundProcess
   {
@@ -366,7 +383,8 @@ namespace XCL
     , mp_vivado(nullptr)
     , mp_xvcpcie(nullptr)
     , m_timeout(60)
-    , m_interactive(true)
+    , m_interactive(false)
+    , mp_interp(nullptr)
   {
   }
 
@@ -394,7 +412,7 @@ namespace XCL
   {
     std::cout << "\n";
     std::cout << "================================================\n";
-    std::cout << "==        CHIPSCOPE DEBUG FLOW ENABLED        ==\n";
+    std::cout << "          CHIPSCOPE DEBUG FLOW ENABLED          \n";
     std::cout << "================================================\n";
     std::cout << "\n";
     std::cout << "chipscope_flow enabled in sdx.ini\n";
@@ -406,9 +424,10 @@ namespace XCL
 //    std::cout << "\tand optional argument: " << optional_ini_parameters << std::endl;
 
     try {
+      mp_interp = new InterpGuard();
+      process_params();
       verify_tools_installed_or_error();
       copy_user_tcl_template();
-      create_interp();
       setup_working_directory();
       launch_xvc_pcie();
       launch_vivado();
@@ -426,6 +445,8 @@ namespace XCL
       std::cout << "\n*** Aborted chipscope debug operation ***\n\n";
     }
 
+    std::cout << "\nCONTINUING HOST EXECUTION...\n";
+
   }
 
 
@@ -442,17 +463,17 @@ namespace XCL
     if (valid) {
       std::cout << "\n";
       std::cout << "================================================\n";
-      std::cout << "==     CHIPSCOPE DEBUG FLOW POST PROCESS      ==\n";
+      std::cout << "       CHIPSCOPE DEBUG FLOW POST PROCESS        \n";
       std::cout << "================================================\n";
       std::cout << "\n";
       if (m_interactive) {
-        std::cout << "  Interactive (GUI) mode enabled\n";
+        std::cout << "Interactive (GUI) mode enabled\n";
       }
       else {
-        std::cout << "For interactive (GUI) mode, set\n";
+        std::cout << "For interactive (GUI) mode, set\n\n";
         std::cout << "    [Debug]\n";
         std::cout << "    chipscope_params = interactive\n";
-        std::cout << "In the sdx.ini file\n";
+        std::cout << "\nIn the sdx.ini file\n";
       }
       std::cout << "\n";
 
@@ -474,7 +495,8 @@ namespace XCL
 
     // Ensure processes are killed before exiting program so our children
     // don't turn to zombies
-    delete_interp();
+    if (mp_interp)
+      delete mp_interp;
     if (mp_vivado) 
       delete mp_vivado;
     if (mp_xvcpcie)
@@ -536,6 +558,14 @@ namespace XCL
   }
 
 
+  void LabtoolController::process_params()
+  {
+    // TODO: Set run modes based on optional_ini_parameters
+    if (optional_ini_parameters == "interactive")
+      m_interactive = true;
+  }
+
+
   void LabtoolController::verify_tools_installed_or_error() const
   {
     // Ensures that the correct tools are installed on this system. 
@@ -559,9 +589,11 @@ namespace XCL
     if (! bfs::exists(workspace_root)) {
       bfs::create_directory(workspace_root);
     }
+    std::cout << "\nOutput directory is: " << workspace_root << "\n\n";
     // For simplicity, we copy files into the working directory where
     // vivado and xvc_pcie will be run. This keeps a user from accidentally
     // overwriting a file in use
+    std::cout << "Copying intermediate files to working directory\n";
     copy_to_dir(get_ltx_file(), workspace_root);
     copy_to_dir(get_user_tcl_file(), workspace_root);
   }
@@ -636,7 +668,7 @@ namespace XCL
     std::cout << "\nWaiting for vivado server process to come online...";
     bool ready = false;
     for (int i = 0; i < m_timeout; ++i) {
-      int result = run_tcl_cmd("ready localhost");
+      int result = mp_interp->exec_tcl("ready localhost");
       if (result == TCL_OK) {
         ready = true;
         break;
@@ -661,7 +693,7 @@ namespace XCL
  
   void LabtoolController::arm_ila_trigger()
   {
-    int result = run_tcl_cmd("run_ila localhost");
+    int result = mp_interp->exec_tcl("run_ila localhost");
     if (result != TCL_OK) {
       throw std::runtime_error("Error during run_ila");
     }
@@ -670,7 +702,7 @@ namespace XCL
   
   void LabtoolController::capture_ila()
   {
-    int result = run_tcl_cmd("capture_ila localhost");
+    int result = mp_interp->exec_tcl("capture_ila localhost");
     if (result != TCL_OK) {
       throw std::runtime_error("Error during capture_ila");
     }
@@ -681,7 +713,7 @@ namespace XCL
   {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "Shutting down vivado background process...\n";
-    run_tcl_cmd("close localhost");
+    mp_interp->exec_tcl("close localhost");
     if (mp_vivado) {
       mp_vivado->end();
     }
