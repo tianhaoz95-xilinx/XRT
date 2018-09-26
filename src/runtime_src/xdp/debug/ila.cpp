@@ -329,10 +329,10 @@ namespace XCL
           std::cout << "\n=========================================\n";
           std::cout << std::endl;
 
+          setsid();
           int retval = execv(p_cmd, p_args);
-          // Never should get here... 
-          // TODO: throw exception or something
-          return;
+          // Never should get here... execv does not return
+          throw std::runtime_error("Error during execv");
         }
         else {
           // If we get here we are a happy parent of a healthy new child
@@ -341,11 +341,28 @@ namespace XCL
 
       void end(int sig = 9)
       {
-        // Maybe there is a more gentle way. But this works...
-        // 2 = SIGINT (ctrl-c)
-        // 9 = SIGKILL
         if (m_pid > 0) {
-          int retval = kill(m_pid, sig);
+          // Kill all processes associated with this
+          // session id. Required to kill all 3 processes in a vivado
+          // type loader. Otherwise we get zombies.
+          // TODO: There must be a better way to kill a group of processes
+          std::string cmd = "ps -s " + std::to_string(m_pid) + " -o pid=";
+          FILE *pipe = popen(cmd.c_str(), "r");
+          if (!pipe) {
+            throw std::runtime_error("Error killing process");
+          }
+          char pidStr[256];
+          std::vector<pid_t> pidList;
+          while (fscanf(pipe, "%s", pidStr) != EOF) {
+            pidList.push_back(atoi(pidStr));
+          }
+          pclose(pipe);
+          for (auto pid: pidList) {
+            // This did not work: kill(m_pid, sig);
+            // Instead I use a system call to kill and it does work
+            cmd = "kill -" + std::to_string(sig) + " " + std::to_string(pid);
+            system(cmd.c_str());
+          }
           m_pid = 0;
         }
       }
@@ -354,6 +371,7 @@ namespace XCL
       {
         int status;
         waitpid(m_pid, &status, 0);
+        m_pid = 0;
       }
 
       pid_t get_pid()
@@ -382,7 +400,7 @@ namespace XCL
     , driver_instance(0)
     , mp_vivado(nullptr)
     , mp_xvcpcie(nullptr)
-    , m_timeout(60)
+    , m_timeout(120)
     , m_interactive(false)
     , mp_interp(nullptr)
   {
@@ -532,7 +550,10 @@ namespace XCL
 
   const std::string LabtoolController::get_ltx_file() const
   {
-    // TODO: This needs to be calculated as the same base name as the xclbin
+    // TODO: IMPORTANT: LTX file needs to be the same base name as the xclbin
+    // How do we know the name of the xclbin? If we can't figure that out,
+    // a second option for 2018.3 is to just assume 1 ltx file.
+    // See: CR-1011484
     const std::string ltxFile = "pfm_top_wrapper.ltx";
     return ltxFile;
   }
@@ -563,6 +584,7 @@ namespace XCL
     // TODO: Set run modes based on optional_ini_parameters
     if (optional_ini_parameters == "interactive")
       m_interactive = true;
+    // TODO: get timeout value
   }
 
 
@@ -586,16 +608,16 @@ namespace XCL
   void LabtoolController::setup_working_directory()
   {
     // TODO: Maybe need the PID here - i don't think this filename is correct...
-    if (! bfs::exists(workspace_root)) {
-      bfs::create_directory(workspace_root);
+    if (! bfs::exists(get_working_dir())) {
+      bfs::create_directory(get_working_dir());
     }
-    std::cout << "\nOutput directory is: " << workspace_root << "\n\n";
+    std::cout << "\nOutput directory is: " << get_working_dir() << "\n\n";
     // For simplicity, we copy files into the working directory where
     // vivado and xvc_pcie will be run. This keeps a user from accidentally
     // overwriting a file in use
     std::cout << "Copying intermediate files to working directory\n";
-    copy_to_dir(get_ltx_file(), workspace_root);
-    copy_to_dir(get_user_tcl_file(), workspace_root);
+    copy_to_dir(get_ltx_file(), get_working_dir());
+    copy_to_dir(get_user_tcl_file(), get_working_dir());
   }
 
 
