@@ -6,7 +6,9 @@
 namespace XCL
 {
   // Forward
-  class BackgroundProcess; 
+  class BackgroundProcess;
+  class InterpGuard;
+
 
   class LabtoolController {
   public:
@@ -21,6 +23,9 @@ namespace XCL
     const std::string get_user_tcl_file() const;
     const std::string get_ltx_file() const;
     const std::string get_working_dir() const;
+
+    // Alter settings as needed based on passed in ini params
+    void process_params();
 
     // Throws an exception if we are missing tools on the host
     // Need to have xvc_pcie and vivado (or vivado_lab).
@@ -84,6 +89,7 @@ namespace XCL
     BackgroundProcess *mp_vivado;
     BackgroundProcess *mp_xvcpcie;
     bool m_interactive;
+    InterpGuard *mp_interp;
   };
 
 }

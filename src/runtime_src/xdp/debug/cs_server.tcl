@@ -1,6 +1,9 @@
 #
-#  Use during auto-CS debug at run time- Vivado Lab sourcing procs and setup ILA and eval server
+#  Use during auto-CS debug at run time- Vivado Lab sourcing procs and 
+#  setup ILA and eval server
 #
+# TODO: Prior to release beautify this file for open source release
+# TODO: Legal review of this Tcl file
 
 proc Eval_Server {port {interp {}} {openCmd EvalOpenProc}} {
   socket -server [list EvalAccept $interp $openCmd] $port
@@ -109,32 +112,46 @@ proc do_detect_ilas {ltx_file} {
 }
 
 proc do_create_custom_ctrl_names {} {
-	foreach ila [get_hw_ilas -of_objects [get_hw_devices debug_bridge_0]] {
+  foreach ila [get_hw_ilas -of_objects [get_hw_devices debug_bridge_0]] {
     foreach ctrl_probe [get_hw_probes -of_objects [get_hw_ilas $ila] -filter {NAME=~"*_axi_ar_ctrl*" || NAME=~"*_axi_aw_ctrl*" || NAME=~"*_axi_r_ctrl*" || NAME=~"*_axi_w_ctrl*" || NAME=~"*_axi_b_ctrl*"}] {
       set slot_name [join [lrange [split [string tolower [get_property INTERFACE.NAME [get_hw_probes $ctrl_probe]]] "_"] 0 1] "_"]
       set interface_name [get_property INTERFACE.CONNECTED_BUS [get_hw_probes $ctrl_probe]]
       set signal_name [get_property INTERFACE.LOGICAL_PORT [get_hw_probes $ctrl_probe]]
       set_property NAME.CUSTOM "$slot_name : $interface_name : $signal_name" [get_hw_probes $ctrl_probe]
       set_property NAME.SELECT "Custom" [get_hw_probes $ctrl_probe]
-#      puts "custom name = $slot_name : $interface_name : $signal_name"
+      #      puts "custom name = $slot_name : $interface_name : $signal_name"
     }
   }
 }
 
 proc do_setup_ilas_any_txn_start {} {
-	foreach ila [get_hw_ilas -of_objects [get_hw_devices debug_bridge_0]] {
-	  set is_system_ila 0
-    foreach ar_ctrl [get_hw_probes -of_objects [get_hw_ilas $ila] -filter {NAME=~"*_axi_ar_ctrl*"}] {
-      set_property TRIGGER_COMPARE_VALUE eq2'h3 [get_hw_probes $ar_ctrl]
-      set is_system_ila 1
-    }
-    foreach aw_ctrl [get_hw_probes -of_objects [get_hw_ilas $ila] -filter {NAME=~"*_axi_aw_ctrl*"}] {
-      set_property TRIGGER_COMPARE_VALUE eq2'h3 [get_hw_probes $aw_ctrl]
-      set is_system_ila 1
-    }
-    if {$is_system_ila == 1} {
-      set_property CONTROL.TRIGGER_CONDITION OR [get_hw_ilas $ila]
-      set_property CONTROL.TRIGGER_POSITION 32 [get_hw_ilas $ila]
+  # TODO: Maybe allow an environment override of this filename?
+  set trigger_file "cs_trigger.tcl"
+  set apply_trigger_settings 1
+
+  # Read the trigger file if it exists on disk. If there is any error
+  # sourcing it, re-apply the trigger settings
+  if {[file exists $trigger_file]} {
+    if {! [catch {source $trigger_file} fid]} {
+      set apply_trigger_settings 0
+    } 
+  }
+  if {$apply_trigger_settings} {
+    puts "Apply trigger settings for first time capture..."
+    foreach ila [get_hw_ilas -of_objects [get_hw_devices debug_bridge_0]] {
+      set is_system_ila 0
+      foreach ar_ctrl [get_hw_probes -of_objects [get_hw_ilas $ila] -filter {NAME=~"*_axi_ar_ctrl*"}] {
+        set_property TRIGGER_COMPARE_VALUE eq2'h3 [get_hw_probes $ar_ctrl]
+        set is_system_ila 1
+      }
+      foreach aw_ctrl [get_hw_probes -of_objects [get_hw_ilas $ila] -filter {NAME=~"*_axi_aw_ctrl*"}] {
+        set_property TRIGGER_COMPARE_VALUE eq2'h3 [get_hw_probes $aw_ctrl]
+        set is_system_ila 1
+      }
+      if {$is_system_ila == 1} {
+        set_property CONTROL.TRIGGER_CONDITION OR [get_hw_ilas $ila]
+        set_property CONTROL.TRIGGER_POSITION 32 [get_hw_ilas $ila]
+      }
     }
   }
 }

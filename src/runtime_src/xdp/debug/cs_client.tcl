@@ -1,7 +1,10 @@
 #
-#  Use during auto-CS debug at run time- Load "eval client" Tcl procs and open client-side socket connection
+#  Use during auto-CS debug at run time- Load "eval client" Tcl procs and 
+#  open client-side socket connection
 #
-
+# TODO: Should we use this file or C++ify the client side before release? 
+# TODO: Legal review of this Tcl file
+#
 variable sock
 
 proc Eval_Open {server port} {
