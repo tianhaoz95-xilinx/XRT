@@ -20,7 +20,7 @@
 
 #include <stdexcept>
 
-// TODO: Tcl NOTE TO JAKE: 
+// TODO: Check if Tcl inclusion is allowed in xdp 
 // I'm not sure if <tcl.h> will be allowed (inclusion of Tcl interpreter)
 // We may need to c++ify the code that currently is using Tcl in this file.
 // This causes inclusion of -ltcl in the makefiles, which could be a problem when
@@ -123,19 +123,19 @@ namespace {
   //    Used to copy the trigger and ltx files to the vivado working directory
   void copy_to_dir(const std::string& srcFile, const std::string& dstDir)
   {
-    // TODO: Use bfs::copy_file (but not currently working - need cmake update)
     if (!bfs::exists(srcFile)) 
       throw std::runtime_error("copy_to_dir: file '" + srcFile + "' not found");
     bfs::path dstPath = bfs::path(dstDir) / base_filename(srcFile);
     std::string dstFile = dstPath.string();
+    // TODO: Use bfs::copy_file (but not currently working - need cmake update)
+    // bfs::copy_file(srcFile, dstFile, bfs::copy_option::overwrite_if_exists);
+    // Quick and dirty workaround below: 
     std::ifstream src(srcFile, std::ios::binary);
     std::ofstream dst(dstFile, std::ios::binary);
     dst << src.rdbuf();
     src.close();
     dst.close();
   }
-
-
 }
 
 
@@ -207,11 +207,10 @@ namespace XCL
   //
   //  TODO: Error and exception handler for bad return values
   //  TODO: isRunning() still needs some work for a process that ends early
-  //  TODO: need to kill process group (killpg, setpgrp, setsid). I am still getting
-  //        lingering processes after exit sometimes.
   //  TODO: interprocess mutex that will throw an exception if a conflicting
   //        process tries to start the same program like xvc_pcie while another
   //        is currently running
+  //  TODO: Better way to kill processes than the system call to kill
   //
   class BackgroundProcess
   {
@@ -280,20 +279,14 @@ namespace XCL
                           O_WRONLY | O_TRUNC | O_CREAT, \
                           S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR );
             if (fd == -1) {
-              // TODO: Throw exception - could not open stdout/stderr log file
-              std::cout << "ERROR: Could not open log" << std::endl;
-              return;
+              throw std::runtime_error("Could not open log file");
             } 
             else {
               if (dup2(fd,1) == -1) {
-                // TODO: Throw exception: Could not redirect stdout
-                std::cout << "ERROR: Could not redirect stdout" << std::endl;
-                return;
+                throw std::runtime_error("Could not redirect stdout");
               }
               if (dup2(fd,2) == -1) {
-                // TODO: Throw exception: Could not redirect stderr
-                std::cout << "ERROR: Could not redirect stderr" << std::endl;
-                return;
+                throw std::runtime_error("Could not redirect stderr");
               }
               close(fd);
             }
@@ -336,6 +329,7 @@ namespace XCL
         }
         else {
           // If we get here we are a happy parent of a healthy new child
+          // Add anything here to do when the child starts
         }
       }
 
@@ -550,11 +544,24 @@ namespace XCL
 
   const std::string LabtoolController::get_ltx_file() const
   {
-    // TODO: IMPORTANT: LTX file needs to be the same base name as the xclbin
+    // TODO: IMPORTANT: ltx file needs to be the same base name as the xclbin
     // How do we know the name of the xclbin? If we can't figure that out,
     // a second option for 2018.3 is to just assume 1 ltx file.
     // See: CR-1011484
-    const std::string ltxFile = "pfm_top_wrapper.ltx";
+    // TODO: Maybe override ltx with an ini param
+    //std::string ltxFile = "pfm_top_wrapper.ltx";
+    std::string ltxFile;
+    std::string ltxDir = ".";
+    for (bfs::directory_iterator itr(ltxDir); itr!=bfs::directory_iterator(); ++itr) {
+      if (is_regular_file(itr->status()) && (itr->path().extension() == ".ltx")) {
+        // Just grab the first ltx we find for now...
+        ltxFile = itr->path().string();
+        break;
+      }
+    }
+    if (ltxFile == "") {
+      throw std::runtime_error("No ltx file found");
+    }
     return ltxFile;
   }
   
@@ -598,6 +605,7 @@ namespace XCL
     std::cout << "server script    : " << get_server_tcl_file() << "\n";
     std::cout << "client script    : " << get_client_tcl_file() << "\n";
     std::cout << "user trigger file: " << get_user_tcl_file() << "\n";
+    std::cout << "ltx file         : " << get_ltx_file() << "\n";
     std::cout << "vivado           : " << get_vivado_cmd() << "\n";
     std::cout << "xvc_pcie         : " << get_xvc_pcie_cmd() << "\n";
     std::cout << "kernel driver    : " << get_xvc_driver(driver_instance) << "\n";
@@ -607,17 +615,23 @@ namespace XCL
 
   void LabtoolController::setup_working_directory()
   {
-    // TODO: Maybe need the PID here - i don't think this filename is correct...
-    if (! bfs::exists(get_working_dir())) {
-      bfs::create_directory(get_working_dir());
+    std::string working_dir = get_working_dir();
+
+    // TODO: check filename of this directory 
+    if (bfs::exists(working_dir)) {
+      bfs::remove_all(working_dir);
     }
-    std::cout << "\nOutput directory is: " << get_working_dir() << "\n\n";
+
+    if (! bfs::exists(working_dir)) {
+      bfs::create_directory(working_dir);
+    }
+    std::cout << "\nOutput directory is: " << working_dir << "\n\n";
     // For simplicity, we copy files into the working directory where
     // vivado and xvc_pcie will be run. This keeps a user from accidentally
     // overwriting a file in use
     std::cout << "Copying intermediate files to working directory\n";
-    copy_to_dir(get_ltx_file(), get_working_dir());
-    copy_to_dir(get_user_tcl_file(), get_working_dir());
+    copy_to_dir(get_ltx_file(), working_dir);
+    copy_to_dir(get_user_tcl_file(), working_dir);
   }
 
 
