@@ -20,7 +20,7 @@
 
 #include <stdexcept>
 
-// TODO: Check if Tcl inclusion is allowed in xdp 
+// TODO: Check if Tcl inclusion is allowed in xdp
 // I'm not sure if <tcl.h> will be allowed (inclusion of Tcl interpreter)
 // We may need to c++ify the code that currently is using Tcl in this file.
 // This causes inclusion of -ltcl in the makefiles, which could be a problem when
@@ -37,7 +37,7 @@ namespace {
   // ------------------------------------------------
   // UNNAMED NAMESPACE - HELPER CLASSES AND FUNCTIONS
   // ------------------------------------------------
-  
+
   // Given the unique management device number, locate the xvc_pcie
   // char device driver.
   const std::string get_xvc_driver(unsigned int deviceNumber)
@@ -69,17 +69,17 @@ namespace {
       throw std::runtime_error("XILINX_XRT: No such directory '" + debug_path.string() + "'");
     return debug_path.string();
   }
-  
-  
-  const std::string get_vivado_cmd()
+
+
+  const std::string get_vivado_lab_cmd()
   {
-    // Returns the full path to vivado_lab or vivado 
+    // Returns the full path to vivado_lab or vivado
     // TODO: Create a smart system to find vivado or vivado_lab on the system
     const std::string cmd = "/proj/xbuilds/2018.3_daily_latest/labtools_installs/lin64/Vivado_Lab/2018.3/bin/vivado_lab";
     return cmd;
   }
 
-  
+
   const std::string get_xvc_pcie_cmd()
   {
     // TODO: Find xvc_pcie or thow an exception
@@ -92,17 +92,17 @@ namespace {
   {
     bfs::path debugDir(get_xdp_debug_dir());
     bfs::path tclPath = debugDir / "cs_viewwave.tcl";
-    if (!bfs::exists(tclPath)) 
+    if (!bfs::exists(tclPath))
       throw std::runtime_error("File not found '" + tclPath.string() + "'");
     return tclPath.string();
   }
 
-  
+
   const std::string get_server_tcl_file()
   {
     bfs::path debugDir(get_xdp_debug_dir());
     bfs::path tclPath = debugDir / "cs_server.tcl";
-    if (!bfs::exists(tclPath)) 
+    if (!bfs::exists(tclPath))
       throw std::runtime_error("File not found '" + tclPath.string() + "'");
     return tclPath.string();
   }
@@ -112,24 +112,24 @@ namespace {
   {
     bfs::path debugDir(get_xdp_debug_dir());
     bfs::path tclPath = debugDir / "cs_client.tcl";
-    if (!bfs::exists(tclPath)) 
+    if (!bfs::exists(tclPath))
       throw std::runtime_error("File not found '" + tclPath.string() + "'");
     return tclPath.string();
   }
 
-  
-  
+
+
   // Copy the given source file to the destination directory
   //    Used to copy the trigger and ltx files to the vivado working directory
   void copy_to_dir(const std::string& srcFile, const std::string& dstDir)
   {
-    if (!bfs::exists(srcFile)) 
+    if (!bfs::exists(srcFile))
       throw std::runtime_error("copy_to_dir: file '" + srcFile + "' not found");
     bfs::path dstPath = bfs::path(dstDir) / base_filename(srcFile);
     std::string dstFile = dstPath.string();
     // TODO: Use bfs::copy_file (but not currently working - need cmake update)
     // bfs::copy_file(srcFile, dstFile, bfs::copy_option::overwrite_if_exists);
-    // Quick and dirty workaround below: 
+    // Quick and dirty workaround below:
     std::ifstream src(srcFile, std::ios::binary);
     std::ofstream dst(dstFile, std::ios::binary);
     dst << src.rdbuf();
@@ -145,9 +145,9 @@ namespace XCL
   // InterpGuard -
   //   Helper - Ensure we property create and delete the Tcl interpreter
   //
-  // TODO: TCL DEPENDENCY ALERT - 
-  // This is code for getting a demo up and running more quickly. 
-  // Unless we can embed a tcl interpreter in the xdp code, we may 
+  // TODO: TCL DEPENDENCY ALERT -
+  // This is code for getting a demo up and running more quickly.
+  // Unless we can embed a tcl interpreter in the xdp code, we may
   // need to c++ify this code before checkin...
   //
   class InterpGuard
@@ -185,15 +185,15 @@ namespace XCL
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  // BackgroundProcess - 
-  //   Helper that runs <cmd> [<args...>] in the background using fork() 
+  // BackgroundProcess -
+  //   Helper that runs <cmd> [<args...>] in the background using fork()
   //   and execv() system calls.
   //
   //   This is used to launch xvc_pcie and vivado_lab in the background without
   //   waiting for them to complete. Optionally stdout and stderr can be sent
   //   to a logfile.
   //
-  //   Launched process is tracked and automatically cleaned up when destructor 
+  //   Launched process is tracked and automatically cleaned up when destructor
   //   is called
   //
   //   Usage:
@@ -216,7 +216,7 @@ namespace XCL
   {
     public:
       BackgroundProcess(const std::string& cmd, const std::vector<std::string>& args = {})
-                        
+
         : m_cmd(cmd)
         , m_args(args)
         , m_pid(0)
@@ -264,8 +264,8 @@ namespace XCL
           // TODO: throw exception or something here...
         }
         else if (m_pid == 0) {
-          // I am the forked child... 
-          // Replace this process image with a new one using execv. 
+          // I am the forked child...
+          // Replace this process image with a new one using execv.
 
           if (m_dir != "") {
             // new working directory
@@ -280,7 +280,7 @@ namespace XCL
                           S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR );
             if (fd == -1) {
               throw std::runtime_error("Could not open log file");
-            } 
+            }
             else {
               if (dup2(fd,1) == -1) {
                 throw std::runtime_error("Could not redirect stdout");
@@ -360,7 +360,7 @@ namespace XCL
           m_pid = 0;
         }
       }
-      
+
       void wait()
       {
         int status;
@@ -388,7 +388,7 @@ namespace XCL
 namespace XCL
 {
 
-  LabtoolController::LabtoolController(const std::string& ID_init) 
+  LabtoolController::LabtoolController(const std::string& ID_init)
     : ID(ID_init)
     , xvc_pcie_port(0)
     , driver_instance(0)
@@ -397,12 +397,15 @@ namespace XCL
     , m_timeout(120)
     , m_interactive(false)
     , mp_interp(nullptr)
+    ,vivado_lab_available(false)
+    ,vivado_available(false)
+    ,xvc_pcie_available(false)
   {
   }
 
 
-  void LabtoolController::init(std::string& workspace, unsigned port, 
-                               unsigned instance, std::string& optional) 
+  void LabtoolController::init(std::string& workspace, unsigned port,
+                               unsigned instance, std::string& optional)
   {
     workspace_root = workspace;
     xvc_pcie_port = port;
@@ -411,7 +414,7 @@ namespace XCL
   }
 
 
-  std::string LabtoolController::getID() 
+  std::string LabtoolController::getID()
   {
     return ID;
   }
@@ -420,7 +423,7 @@ namespace XCL
   //------------------------------
   // MAIN FLOW IS IN THIS METHOD
   //------------------------------
-  void LabtoolController::launch() 
+  void LabtoolController::launch()
   {
     std::cout << "\n";
     std::cout << "================================================\n";
@@ -429,7 +432,7 @@ namespace XCL
     std::cout << "\n";
     std::cout << "chipscope_flow enabled in sdx.ini\n";
     std::cout << "\n";
-      
+
 //    std::cout << "launch labtool in: " << workspace_root << std::endl;
 //    std::cout << "\twith port: " << xvc_pcie_port << std::endl;
 //    std::cout << "\twith mgmt_instance: " << driver_instance << std::endl;
@@ -442,10 +445,16 @@ namespace XCL
       copy_user_tcl_template();
       setup_working_directory();
       launch_xvc_pcie();
-      launch_vivado();
+      if (vivado_lab_available) {
+        launch_vivado_lab();
+      } else if (vivado_available) {
+        launch_vivado();
+      } else {
+        throw std::runtime_error("Neither of Vivado and Vivado Lab is available: Someone deleted it after the launching");
+      }
       wait_until_ready();
       arm_ila_trigger();
-    } 
+    }
     catch (std::exception &e) {
       std::cout << e.what() << "\n";
       std::cout << "Host program will continue without chipscope debug\n";
@@ -466,10 +475,10 @@ namespace XCL
   {
     // Nothing to do here I believe
   }
-  
-  
+
+
   // Gracefully shut down any running processes
-  void LabtoolController::cleanup() 
+  void LabtoolController::cleanup()
   {
     bool valid = (mp_vivado) && (mp_xvcpcie);
     if (valid) {
@@ -509,7 +518,7 @@ namespace XCL
     // don't turn to zombies
     if (mp_interp)
       delete mp_interp;
-    if (mp_vivado) 
+    if (mp_vivado)
       delete mp_vivado;
     if (mp_xvcpcie)
       delete mp_xvcpcie;
@@ -517,11 +526,11 @@ namespace XCL
     if (valid) {
       cleanup_working_directory();
       if (m_interactive) {
-        launch_vivado_interactive();
+        launch_vivado_lab_interactive();
       }
     }
   }
-  
+
 
   const std::string LabtoolController::get_user_tcl_file() const
   {
@@ -564,13 +573,13 @@ namespace XCL
     }
     return ltxFile;
   }
-  
-    
+
+
   const std::string LabtoolController::get_working_dir() const
   {
     return workspace_root;
   }
-  
+
 
   void LabtoolController::copy_user_tcl_template() const
   {
@@ -579,7 +588,7 @@ namespace XCL
     bfs::path currentLocation = get_user_tcl_file();
     if (currentLocation.parent_path() != cwd) {
       copy_to_dir(get_user_tcl_file(), cwd.string());
-    } 
+    }
     else {
       std::cout << "Reusing trigger tcl file: " << get_user_tcl_file() << "\n";
     }
@@ -595,9 +604,9 @@ namespace XCL
   }
 
 
-  void LabtoolController::verify_tools_installed_or_error() const
+  void LabtoolController::verify_tools_installed_or_error()
   {
-    // Ensures that the correct tools are installed on this system. 
+    // Ensures that the correct tools are installed on this system.
     // Throw an exception if we are missing 2018.3 vivado and vivado_lab
     // Throw an exception if we are missing 2018.3 xvc_pcie
     // TODO: Implement Me
@@ -606,10 +615,22 @@ namespace XCL
     std::cout << "client script    : " << get_client_tcl_file() << "\n";
     std::cout << "user trigger file: " << get_user_tcl_file() << "\n";
     std::cout << "ltx file         : " << get_ltx_file() << "\n";
-    std::cout << "vivado           : " << get_vivado_cmd() << "\n";
+    std::cout << "vivado           : " << get_vivado_lab_cmd() << "\n";
     std::cout << "xvc_pcie         : " << get_xvc_pcie_cmd() << "\n";
     std::cout << "kernel driver    : " << get_xvc_driver(driver_instance) << "\n";
     std::cout << "\n";
+
+    vivado_lab_available = check_vivado_lab_availability();
+    vivado_available = check_vivado_availability();
+    xvc_pcie_available = check_xvc_pcie_availability();
+
+    if (!xvc_pcie_available) {
+      throw std::runtime_error("XVC PCIe server not available");
+    }
+
+    if (!vivado_lab_available && !vivado_available) {
+      throw std::runtime_error("Neither of Vivado and Vivado Lab is available");
+    }
   }
 
 
@@ -617,7 +638,7 @@ namespace XCL
   {
     std::string working_dir = get_working_dir();
 
-    // TODO: check filename of this directory 
+    // TODO: check filename of this directory
     if (bfs::exists(working_dir)) {
       bfs::remove_all(working_dir);
     }
@@ -651,15 +672,15 @@ namespace XCL
   }
 
 
-  void LabtoolController::launch_vivado()
+  void LabtoolController::launch_vivado_lab()
   {
     // Changes to the given dir before launch.
     // Assumes that ltx and tcl files are already copied into the working dir.
-    const std::string cmd = get_vivado_cmd();
+    const std::string cmd = get_vivado_lab_cmd();
     const std::string project = "project_1";
-    int hws_port = 3121;  
+    int hws_port = 3121;
     std::string host = "localhost";
-    
+
     std::vector<std::string> args;
     args.push_back("-source");
     std::string tclFile = get_server_tcl_file();
@@ -682,14 +703,17 @@ namespace XCL
     mp_vivado->start();
   }
 
+  void LabtoolController::launch_vivado() {
 
-  void LabtoolController::launch_vivado_interactive()
+  }
+
+  void LabtoolController::launch_vivado_lab_interactive()
   {
     std::vector<std::string> args = {
         "-source", get_viewwave_tcl_file(),
         "-tclargs", "waveform.ila"
     };
-    BackgroundProcess p(get_vivado_cmd(), args);
+    BackgroundProcess p(get_vivado_lab_cmd(), args);
     p.setDir(get_working_dir());
     std::string log = "vivado_log.out";
     p.setLog(log);
@@ -726,7 +750,7 @@ namespace XCL
     }
   }
 
- 
+
   void LabtoolController::arm_ila_trigger()
   {
     int result = mp_interp->exec_tcl("run_ila localhost");
@@ -735,7 +759,7 @@ namespace XCL
     }
   }
 
-  
+
   void LabtoolController::capture_ila()
   {
     int result = mp_interp->exec_tcl("capture_ila localhost");
@@ -767,5 +791,17 @@ namespace XCL
     // TODO: Implement me
   }
 
-}
+  bool LabtoolController::check_vivado_lab_availability() {
+    return false;
+  }
 
+  bool LabtoolController::check_vivado_availability() {
+    return true;
+  }
+
+  bool LabtoolController::check_xvc_pcie_availability() {
+    return true;
+  }
+
+
+}

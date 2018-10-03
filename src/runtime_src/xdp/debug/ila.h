@@ -29,10 +29,10 @@ namespace XCL
 
     // Throws an exception if we are missing tools on the host
     // Need to have xvc_pcie and vivado (or vivado_lab).
-    void verify_tools_installed_or_error() const;
+    void verify_tools_installed_or_error();
 
     // Copy the trigger template settings file to the current
-    // directory for the user. 
+    // directory for the user.
     // On the first debug iteration, the file will not exist and
     // we copy to the current directory.
     // Subsequent iterations pick the file up from the current dir.
@@ -53,17 +53,19 @@ namespace XCL
 
     // Launch background vivado (or vivado_lab) batch process.
     // Changes to the given dir before launch.
+    void launch_vivado_lab();
+
     void launch_vivado();
 
     // Launch vivado in interactive GUI mode to view waveform capture
-    void launch_vivado_interactive();
+    void launch_vivado_lab_interactive();
 
     // Need to give vivado process time to load the tcl script
     // If we exceed a timeout threshold, a runtime exception is
     // thrown
     void wait_until_ready();
 
-    // Communicate with the running vivado process - when the 
+    // Communicate with the running vivado process - when the
     // ILA is armed, allow the host process to continue
     void arm_ila_trigger();
 
@@ -78,7 +80,10 @@ namespace XCL
     // and then delete the directory.
     void cleanup_working_directory();
 
-    
+    bool check_vivado_lab_availability();
+    bool check_vivado_availability();
+    bool check_xvc_pcie_availability();
+
   private:
     std::string ID;
     std::string workspace_root;
@@ -90,6 +95,10 @@ namespace XCL
     BackgroundProcess *mp_xvcpcie;
     bool m_interactive;
     InterpGuard *mp_interp;
+
+    bool vivado_lab_available;
+    bool vivado_available;
+    bool xvc_pcie_available;
   };
 
 }
