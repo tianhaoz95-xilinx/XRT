@@ -117,6 +117,13 @@ get_ila_vivado_lab_path()
 }
 
 inline unsigned int
+get_ila_timeout()
+{
+  static unsigned int value = detail::get_uint_value("Debug.timeout", 3000);
+  return value;
+}
+
+inline unsigned int
 get_ila_port()
 {
   static unsigned int value = detail::get_uint_value("Debug.chipscope_xvc_port",10200);
