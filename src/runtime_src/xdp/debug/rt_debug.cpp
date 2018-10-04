@@ -206,10 +206,11 @@ namespace XCL
     std::string vivado_lab_path = xrt::config::get_ila_vivado_lab_path();
     std::string optional_arguments = xrt::config::get_ila_optional();
     int port = xrt::config::get_ila_port();
+    int timeout = xrt::config::get_ila_timeout();
     auto config = rts->getDeviceConfig(deviceName);
     if (!config.debugIP[DEBUG_IP_TYPE::ILA].empty() && rts->getLabtoolCount() == 0) {
       LabtoolController* labtool_instance = new LabtoolController(deviceName);
-      labtool_instance->init(workspace_root, port, config.mgmt_instance, vivado_lab_path, optional_arguments);
+      labtool_instance->init(workspace_root, port, timeout, config.mgmt_instance, vivado_lab_path, optional_arguments);
       labtool_instance->launch();
       rts->registerLabtool(labtool_instance);
     }

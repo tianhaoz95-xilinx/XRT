@@ -13,7 +13,7 @@ namespace XCL
   class LabtoolController {
   public:
     LabtoolController(const std::string& ID_init);
-    void init(std::string& workspace, unsigned port, unsigned instance, std::string& vivado_lab_path, std::string& optional);
+    void init(std::string& workspace, unsigned port, unsigned timeout, unsigned instance, std::string& vivado_lab_path, std::string& optional);
     std::string getID();
     void launch();
     void finish();

@@ -404,7 +404,7 @@ namespace XCL
   }
 
 
-  void LabtoolController::init(std::string& workspace, unsigned port,
+  void LabtoolController::init(std::string& workspace, unsigned port, unsigned timeout,
                                unsigned instance, std::string& vivado_lab_path,
                                std::string& optional)
   {
@@ -413,6 +413,7 @@ namespace XCL
     driver_instance = instance;
     optional_ini_parameters = optional;
     vivado_lab_location = vivado_lab_path;
+    m_timeout = timeout;
   }
 
 
