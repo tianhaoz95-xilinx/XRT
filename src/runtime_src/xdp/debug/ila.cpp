@@ -405,12 +405,14 @@ namespace XCL
 
 
   void LabtoolController::init(std::string& workspace, unsigned port,
-                               unsigned instance, std::string& optional)
+                               unsigned instance, std::string& vivado_lab_path,
+                               std::string& optional)
   {
     workspace_root = workspace;
     xvc_pcie_port = port;
     driver_instance = instance;
     optional_ini_parameters = optional;
+    vivado_lab_location = vivado_lab_path;
   }
 
 

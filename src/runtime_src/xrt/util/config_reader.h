@@ -109,6 +109,13 @@ get_ila_debug()
   return value;
 }
 
+inline std::string
+get_ila_vivado_lab_path()
+{
+  static std::string value = detail::get_string_value("Debug.vivado_lab_path", "na");
+  return value;
+}
+
 inline unsigned int
 get_ila_port()
 {
