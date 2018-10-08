@@ -21,6 +21,7 @@
 #include <CL/opencl.h>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include "xdp/profile/rt_profile.h"
 #include "xdp/debug/rt_debug.h"
 #include "driver/include/xclperf.h"
@@ -39,11 +40,20 @@ namespace XCL {
    * This function can be called during static global exit()
    * to check if it is no longer safe to rely on the singleton
    *
-   * @return 
+   * @return
    *   true as long as main is running, false after the singleton dtor
    *   has been called during static global destruction.
    */
   bool active();
+
+  struct DeviceConfig {
+    std::string device_name;
+    std::string user_name;
+    std::string mgmt_name;
+    unsigned mgmt_instance;
+    unsigned user_instance;
+    std::unordered_map<DEBUG_IP_TYPE, std::vector<debug_ip_data>> debugIP;
+  };
 
   class RTSingleton {
   public:
@@ -110,6 +120,7 @@ namespace XCL {
   public:
     void logFinalTrace(xclPerfMonType type);
     unsigned getProfileNumberSlots(xclPerfMonType type, std::string& deviceName);
+    DeviceInfo getDeviceInfo(std::string& deviceName);
     void getProfileSlotName(xclPerfMonType type, std::string& deviceName,
                             unsigned slotnum, std::string& slotName);
     void getProfileKernelName(const std::string& deviceName, const std::string& cuName, std::string& kernelName);
@@ -117,6 +128,17 @@ namespace XCL {
     size_t getDeviceTimestamp(std::string& deviceName);
     double getReadMaxBandwidthMBps();
     double getWriteMaxBandwidthMBps();
+
+  public:
+    void registerLabtool(LabtoolController* instance);
+    int getLabtoolCount();
+    LabtoolController* getLabtool(std::string& ID);
+    void removeLabtool(std::string& ID);
+    void cleanupLabtoolPool();
+
+  public:
+    void configDeviceInfo(std::string& deivceName);
+    DeviceConfig getDeviceConfig(std::string& deivceName);
 
   public:
     ~RTSingleton();
@@ -145,9 +167,9 @@ namespace XCL {
     bool OclProfilingOn = true;
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
+    std::unordered_map<std::string, LabtoolController*> labtoolPool;
+    std::unordered_map<std::string, DeviceConfig> configDict;
   };
 };
 
 #endif
-
-

@@ -102,6 +102,41 @@ get_xrt_debug()
   return value;
 }
 
+inline std::string
+get_ila_debug()
+{
+  static std::string value = detail::get_string_value("Debug.chipscope_flow", "off");
+  return value;
+}
+
+inline std::string
+get_ila_vivado_lab_path()
+{
+  static std::string value = detail::get_string_value("Debug.vivado_lab_path", "na");
+  return value;
+}
+
+inline unsigned int
+get_ila_timeout()
+{
+  static unsigned int value = detail::get_uint_value("Debug.timeout", 3000);
+  return value;
+}
+
+inline unsigned int
+get_ila_port()
+{
+  static unsigned int value = detail::get_uint_value("Debug.chipscope_xvc_port",10200);
+  return value;
+}
+
+inline std::string
+get_ila_optional()
+{
+  static std::string value = detail::get_string_value("Debug.chipscope_params", "none");
+  return value;
+}
+
 inline bool
 get_profile()
 {
@@ -295,5 +330,3 @@ get_sw_em_driver()
 }}
 
 #endif
-
-

@@ -35,6 +35,8 @@
 #ifndef _XCL_PERF_H_
 #define _XCL_PERF_H_
 
+#include <cstddef>
+
 // DSA version (e.g., XCL_PLATFORM=xilinx_adm-pcie-7v3_1ddr_1_1)
 // Simply a default as its read from the device using lspci (see CR 870994)
 #define DSA_MAJOR_VERSION 1
@@ -190,6 +192,7 @@
 
 #define XAPM_MAX_NUMBER_SLOTS             8
 // Max slots = floor(max slots on trace funnel / 2) = floor(63 / 2) = 31
+#define XILA_MAX_NUMBER_SLOTS             31
 #define XSPM_MAX_NUMBER_SLOTS             31
 #define XSAM_MAX_NUMBER_SLOTS             31
 #define XSSPM_MAX_NUMBER_SLOTS            31
@@ -250,7 +253,8 @@ enum xclPerfMonType {
 	XCL_PERF_MON_ACCEL  = 2,
 	XCL_PERF_MON_STALL  = 3,
   XCL_PERF_MON_STR = 4,
-	XCL_PERF_MON_TOTAL_PROFILE = 5
+	XCL_PERF_MON_TOTAL_PROFILE = 5,
+	XCL_PERF_MON_ILA    = 6
 };
 
 /* Performance monitor start event */
@@ -404,5 +408,73 @@ typedef struct {
   //unsigned int mNumSlots;
   xclTraceResults mArray[MAX_TRACE_NUMBER_SAMPLES];
 } xclTraceResultsVector;
+
+typedef struct {
+  unsigned mMagic; // = 0X586C0C6C; XL OpenCL X->58(ASCII), L->6C(ASCII), O->0 C->C L->6C(ASCII);
+  char mName[256];
+  unsigned short mHALMajorVersion;
+  unsigned short mHALMinorVersion;
+  unsigned short mVendorId;
+  unsigned short mDeviceId;
+  unsigned short mSubsystemId;
+  unsigned short mSubsystemVendorId;
+  unsigned short mDeviceVersion;
+  size_t mDDRSize;                    // Size of DDR memory
+  size_t mDataAlignment;              // Minimum data alignment requirement for host buffers
+  size_t mDDRFreeSize;                // Total unused/available DDR memory
+  size_t mMinTransferSize;            // Minimum DMA buffer size
+  unsigned short mDDRBankCount;
+  unsigned short mOCLFrequency[4];
+  unsigned short mPCIeLinkWidth;
+  unsigned short mPCIeLinkSpeed;
+  unsigned short mDMAThreads;
+  short mOnChipTemp;
+  short mFanTemp;
+  unsigned short  mVInt;
+  unsigned short  mVAux;
+  unsigned short  mVBram;
+  float mCurrent;
+  unsigned short mNumClocks;
+  unsigned short mFanSpeed;
+  bool mMigCalib;
+  unsigned long long mXMCVersion;
+  unsigned long long mMBVersion;
+  unsigned short m12VPex;
+  unsigned short m12VAux;
+  unsigned long long mPexCurr;
+  unsigned long long mAuxCurr;
+  unsigned short mFanRpm;
+  short mDimmTemp[4];
+  short mSE98Temp[4];
+  unsigned short m3v3Pex;
+  unsigned short m3v3Aux;
+  unsigned short mDDRVppBottom;
+  unsigned short mDDRVppTop;
+  unsigned short mSys5v5;
+  unsigned short m1v2Top;
+  unsigned short m1v8Top;
+  unsigned short m0v85;
+  unsigned short mMgt0v9;
+  unsigned short m12vSW;
+  unsigned short mMgtVtt;
+  unsigned short m1v2Bottom;
+  unsigned long long mDriverVersion;
+  unsigned mPciSlot;
+  bool mIsXPR;
+  unsigned long long mTimeStamp;
+  char mFpga[256];
+  unsigned short mPCIeLinkWidthMax;
+  unsigned short mPCIeLinkSpeedMax;
+  unsigned short mVccIntVol;
+  unsigned short mVccIntCurr;
+  unsigned short mNumCDMA;
+  char mDeviceUserName[256];
+  char mDeviceMgmtName[256];
+  unsigned mDeviceUserInstance;
+  unsigned mDeviceMgmtInstance;
+  int mDeviceUserFunc;
+  int mDeviceMgmtFunc;
+  // More properties here
+} DeviceInfo;
 
 #endif

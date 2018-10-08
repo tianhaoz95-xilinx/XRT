@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-                startAddr = std::stoll(optarg, &idx, 0);
+            	startAddr = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-                sizeInBytes = std::stoll(optarg, &idx, 0);
+            	sizeInBytes = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
@@ -648,7 +648,7 @@ void xcldev::printHelp(const std::string& exe)
     std::cout << "  program [-d card] [-r region] -p xclbin\n";
     std::cout << "  query   [-d card [-r region]]\n";
     std::cout << "  reset   [-d card] [-h | -r region]\n";
-    std::cout << "  status  [--debug_ip_name]\n";   
+    std::cout << "  status  [--debug_ip_name]\n";
     std::cout << "  scan\n";
     std::cout << "  top [-i seconds]\n";
     std::cout << "  validate [-d card]\n";
@@ -722,12 +722,12 @@ static void topPrintUsage(const xcldev::device *dev, xclDeviceUsage& devstat,
     dev->m_mem_usage_bar(devstat, lines);
 
     dev->m_devinfo_stringize_power(devinfo, lines);
-    
+
     dev->m_mem_usage_stringize_dynamics(devstat, devinfo, lines);
 
     for(auto line:lines){
             printw("%s\n", line.c_str());
-    } 
+    }
 }
 
 static void topThreadFunc(struct topThreadCtrl *ctrl)

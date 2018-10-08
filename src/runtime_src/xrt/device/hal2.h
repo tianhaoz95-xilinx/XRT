@@ -206,6 +206,9 @@ public:
     }
   }
 
+  virtual DeviceInfo
+  getDeviceInfo();
+
   virtual task::queue*
   getQueue(hal::queue_type qt)
   {

@@ -19,8 +19,10 @@
 #define __XILINX_RT_DEBUG_H
 
 #include <string>
+#include <unordered_map>
 
 #include "xclbin/binary.h"
+#include "ila.h"
 
 namespace XCL
 {
@@ -35,7 +37,7 @@ namespace XCL
     const unsigned int DWARF_SECTION  = 1 ;
     const unsigned int BINARY_SECTION = 2 ;
     const unsigned int JSON_SECTION   = 3 ;
-    
+
     struct SectionHeader
     {
       unsigned int type ;
@@ -51,7 +53,7 @@ namespace XCL
       unsigned int numSections ;
       // Followed by N section headers
     } ;
-    
+
   private:
     int uid ;
     int pid ;
@@ -71,7 +73,7 @@ namespace XCL
 
     /**
      * Entry point used by runtime (clCreateProgramWitBinary)
-     * 
+     *
      * @param xclbin
      *   The complete xclbin binary wrapped in a binary API class
      */
@@ -79,9 +81,10 @@ namespace XCL
 
     void setEnvironment() ;
   } ;
-  
+
+  void cb_debug_ila(std::string& deviceName);
+  void register_xocl_debug_callbacks();
+
 } // end namespace
 
 #endif
-
-

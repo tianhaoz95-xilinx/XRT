@@ -214,5 +214,3 @@ operations::
 }
 
 }} // hal2,xrt
-
-

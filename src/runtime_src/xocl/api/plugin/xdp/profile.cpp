@@ -368,7 +368,7 @@ function_call_logger::
 function_call_logger(const char* function)
   : function_call_logger(function,0)
 {}
-  
+
 function_call_logger::
 function_call_logger(const char* function, long long address)
   : m_name(function), m_address(address)
@@ -379,7 +379,17 @@ function_call_logger(const char* function, long long address)
   //This call here should occur just once per application run
   if (!s_load_xdp) {
     s_load_xdp = true;
-    if (xrt::config::get_app_debug() || xrt::config::get_profile()) {
+    bool load_labtool = false;
+    std::string ila_ini_param = xrt::config::get_ila_debug();
+    if (ila_ini_param == "on" || ila_ini_param == "auto") {
+      load_labtool = true;
+    } else if (ila_ini_param == "off") {
+      load_labtool = false;
+    } else {
+      load_labtool = false;
+      std::cout << "Option for ILA not recognized (not one of on/off/auto), considered as off" << std::endl;
+    }
+    if (xrt::config::get_app_debug() || xrt::config::get_profile() || load_labtool) {
       xrt::hal::load_xdp();
     }
   }
@@ -458,5 +468,3 @@ void end_device_profiling()
 }
 
 }}
-
-
