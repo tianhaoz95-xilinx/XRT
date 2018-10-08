@@ -183,6 +183,7 @@ namespace XCL {
     void writeAPISummary(WriterI* writer) const;
     void writeKernelSummary(WriterI* writer) const;
     void writeStallSummary(WriterI* writer) const;
+    void writeKernelStreamSummary(WriterI* writer) const;
     void writeComputeUnitSummary(WriterI* writer) const;
     void writeHostTransferSummary(WriterI* writer) const;
     void writeKernelTransferSummary(WriterI* writer) const;
@@ -282,7 +283,7 @@ namespace XCL {
     int& ProfileFlags;
     int FileFlags; //Which files we want to write out.
     int OclSlotIndex;
-    int HostSlotIndex;
+    unsigned int HostSlotIndex;
     int MigrateMemCalls;
     e_device_trace DeviceTraceOption;
     e_stall_trace StallTraceOption;
@@ -301,6 +302,7 @@ namespace XCL {
     std::map<std::string, xclCounterResults> RolloverCountsMap;
     std::map<std::string, std::vector<std::string>> DeviceBinaryDataSlotsMap;
     std::map<std::string, std::vector<std::string>> DeviceBinaryCuSlotsMap;
+    std::map<std::string, std::vector<std::string>> DeviceBinaryStrSlotsMap;
     std::map<uint64_t, KernelTrace*> KernelTraceMap;
     std::map<uint64_t, BufferTrace*> BufferTraceMap;
     std::map<uint64_t, DeviceTrace*> DeviceTraceMap;

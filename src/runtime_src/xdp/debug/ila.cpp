@@ -323,7 +323,8 @@ namespace XCL
           std::cout << std::endl;
 
           setsid();
-          int retval = execv(p_cmd, p_args);
+          // comment this out to clean unused variable error
+          // int retval = execv(p_cmd, p_args);
           // Never should get here... execv does not return
           throw std::runtime_error("Error during execv");
         }
@@ -392,9 +393,9 @@ namespace XCL
     : ID(ID_init)
     , xvc_pcie_port(0)
     , driver_instance(0)
+    , m_timeout(120)
     , mp_vivado(nullptr)
     , mp_xvcpcie(nullptr)
-    , m_timeout(120)
     , m_interactive(false)
     , mp_interp(nullptr)
     ,vivado_lab_available(false)
@@ -730,7 +731,7 @@ namespace XCL
   {
     std::cout << "\nWaiting for vivado server process to come online...";
     bool ready = false;
-    for (int i = 0; i < m_timeout; ++i) {
+    for (unsigned i = 0; i < m_timeout; ++i) {
       int result = mp_interp->exec_tcl("ready localhost");
       if (result == TCL_OK) {
         ready = true;

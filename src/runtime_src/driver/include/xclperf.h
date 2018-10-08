@@ -192,8 +192,10 @@
 
 #define XAPM_MAX_NUMBER_SLOTS             8
 // Max slots = floor(max slots on trace funnel / 2) = floor(63 / 2) = 31
+#define XILA_MAX_NUMBER_SLOTS             31
 #define XSPM_MAX_NUMBER_SLOTS             31
 #define XSAM_MAX_NUMBER_SLOTS             31
+#define XSSPM_MAX_NUMBER_SLOTS            31
 #define XAPM_METRIC_COUNTERS_PER_SLOT     8
 
 /* Metric counters per slot */
@@ -250,8 +252,9 @@ enum xclPerfMonType {
 	XCL_PERF_MON_HOST   = 1,
 	XCL_PERF_MON_ACCEL  = 2,
 	XCL_PERF_MON_STALL  = 3,
-	XCL_PERF_MON_ILA    = 4,
-	XCL_PERF_MON_TOTAL_PROFILE = 5
+  XCL_PERF_MON_STR = 4,
+	XCL_PERF_MON_TOTAL_PROFILE = 5,
+	XCL_PERF_MON_ILA    = 6
 };
 
 /* Performance monitor start event */
@@ -374,6 +377,12 @@ typedef struct {
   unsigned int CuStallStrCycles[XSAM_MAX_NUMBER_SLOTS];
   unsigned int CuMinExecCycles[XSAM_MAX_NUMBER_SLOTS];
   unsigned int CuMaxExecCycles[XSAM_MAX_NUMBER_SLOTS];
+  // SDx Stream Mon
+  unsigned long long StrNumTranx[XSSPM_MAX_NUMBER_SLOTS];
+  unsigned long long StrDataBytes[XSSPM_MAX_NUMBER_SLOTS];
+  unsigned long long StrBusyCycles[XSSPM_MAX_NUMBER_SLOTS];
+  unsigned long long StrStallCycles[XSSPM_MAX_NUMBER_SLOTS];
+  unsigned long long StrStarveCycles[XSSPM_MAX_NUMBER_SLOTS];
 } xclCounterResults;
 
 /* Performance monitor trace results */
