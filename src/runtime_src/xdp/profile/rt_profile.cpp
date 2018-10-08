@@ -46,14 +46,14 @@ namespace XCL {
   // Top-Level Profile Class
   // ***********************
   RTProfile::RTProfile(int& flag)
-  : ProfileFlags(flag),
-    PerfCounters(),
+  : FunctionStartLogged(false),
+    ProfileFlags(flag),
     FileFlags(0),
-    CurrentContextId(0),
     MigrateMemCalls(0),
-    FunctionStartLogged(false),
     DeviceTraceOption(DEVICE_TRACE_OFF),
-    StallTraceOption(STALL_TRACE_OFF)
+    StallTraceOption(STALL_TRACE_OFF),
+    CurrentContextId(0),
+    PerfCounters()
   {
     // Create device profiler (may or may not be used during given run)
     DeviceProfile = new RTProfileDevice();
@@ -279,8 +279,8 @@ namespace XCL {
       const std::string eventString, const std::string dependString, double timestampMsec)
   {
     double timeStamp = (timestampMsec > 0.0) ? timestampMsec : getTraceTime();
-    double deviceTimeStamp = getDeviceTimeStamp(timeStamp, deviceName);
 #ifdef USE_DEVICE_TIMELINE
+    double deviceTimeStamp = getDeviceTimeStamp(timeStamp, deviceName);
     timeStamp = deviceTimeStamp;
 #endif
 
@@ -783,7 +783,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
       return;
 
     // Log for summary purposes
-    uint64_t index = 0;
+    //uint64_t index = 0;
     for (auto it = resultVector.begin(); it != resultVector.end(); it++) {
       DeviceTrace* tr = DeviceTrace::reuse();
 
@@ -929,7 +929,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
       numSlots = XCL::RTSingleton::Instance()->getProfileNumberSlots(XCL_PERF_MON_MEMORY, deviceName);
       // Traverse all monitor slots (host and all CU ports)
    	   bool deviceDataExists = (DeviceBinaryDataSlotsMap.find(key) == DeviceBinaryDataSlotsMap.end()) ? false : true;
-       for (int s=0; s < numSlots; ++s) {
+       for (unsigned int s=0; s < numSlots; ++s) {
         XCL::RTSingleton::Instance()->getProfileSlotName(XCL_PERF_MON_MEMORY, deviceName, s, slotName);
         if (!deviceDataExists)
           DeviceBinaryDataSlotsMap[key].push_back(slotName);
@@ -969,7 +969,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
        * Log SAM Counters
        */     
       numSlots = XCL::RTSingleton::Instance()->getProfileNumberSlots(XCL_PERF_MON_ACCEL, deviceName);
-      for (int s=0; s < numSlots; ++s) {
+      for (unsigned int s=0; s < numSlots; ++s) {
         uint32_t prevCuExecCount      = FinalCounterResultsMap[key].CuExecCount[s];
         uint32_t prevCuExecCycles     = FinalCounterResultsMap[key].CuExecCycles[s];
         uint32_t prevCuStallExtCycles = FinalCounterResultsMap[key].CuStallExtCycles[s];
@@ -993,6 +993,16 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
           RolloverCounterResultsMap[key].CuStallStrCycles[s] += prevCuStallStrCycles;
         }
       }
+      /*
+       * Streaming IP Counters are 64 bit and unlikely to roll over
+       */
+      numSlots = XCL::RTSingleton::Instance()->getProfileNumberSlots(XCL_PERF_MON_STR, deviceName);
+      deviceDataExists = (DeviceBinaryStrSlotsMap.find(key) == DeviceBinaryStrSlotsMap.end()) ? false : true;
+      for (unsigned int s=0; s < numSlots; ++s) {
+        XCL::RTSingleton::Instance()->getProfileSlotName(XCL_PERF_MON_STR, deviceName, s, slotName);
+        if (!deviceDataExists)
+          DeviceBinaryStrSlotsMap[key].push_back(slotName);
+      }
       FinalCounterResultsMap[key] = counterResults;
     }
     /*
@@ -1005,7 +1015,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
     bool deviceDataExists = (DeviceBinaryCuSlotsMap.find(key) == DeviceBinaryCuSlotsMap.end()) ? false : true;
     xclCounterResults rolloverResults = RolloverCounterResultsMap.at(key);
     xclCounterResults rolloverCounts = RolloverCountsMap.at(key);
-    for (int s=0; s < numSlots; ++s) {
+    for (unsigned int s=0; s < numSlots; ++s) {
       XCL::RTSingleton::Instance()->getProfileSlotName(XCL_PERF_MON_ACCEL, deviceName, s, cuName);
       XCL::RTSingleton::Instance()->getProfileKernelName(deviceName, cuName, kernelName);
       if (!deviceDataExists)
@@ -1156,7 +1166,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
       std::string cuName = "";
 
       uint32_t numSlots = DeviceBinaryCuSlotsMap.at(key).size();
-      for (int s=0; s < numSlots; ++s) {
+      for (unsigned int s=0; s < numSlots; ++s) {
         cuName = DeviceBinaryCuSlotsMap.at(key)[s];
         uint32_t cuExecCount = counterResults.CuExecCount[s] + rolloverResults.CuExecCount[s];
         uint64_t cuExecCycles = counterResults.CuExecCycles[s] + rolloverResults.CuExecCycles[s]
@@ -1173,6 +1183,40 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
         double cuStallInt =    (double) cuStallIntCycles / deviceCyclesMsec;
         writer->writeStallSummary(cuName, cuExecCount, cuRunTimeMsec,
                                   cuStallExt, cuStallStr, cuStallInt);
+      }
+    }
+  }
+
+  void RTProfile::writeKernelStreamSummary(WriterI* writer) const
+  {
+    auto iter = FinalCounterResultsMap.begin();
+    for (; iter != FinalCounterResultsMap.end(); ++iter) {
+      std::string key = iter->first;
+      std::string deviceName = key.substr(0, key.find_first_of("|"));
+      if (!isDeviceActive(deviceName) || (DeviceBinaryStrSlotsMap.find(key) == DeviceBinaryStrSlotsMap.end()))
+        continue;
+
+    // Get results
+      xclCounterResults counterResults = iter->second;
+      std::string cuPortName = "";
+      uint32_t numSlots = DeviceBinaryStrSlotsMap.at(key).size();
+
+      for (unsigned int s=0; s < numSlots; ++s) {
+        cuPortName = DeviceBinaryStrSlotsMap.at(key)[s];
+        uint64_t strNumTranx =     counterResults.StrNumTranx[s];
+        uint64_t strBusyCycles =   counterResults.StrBusyCycles[s];
+        uint64_t strDataBytes =   counterResults.StrDataBytes[s];
+        uint64_t strStallCycles =   counterResults.StrStallCycles[s];
+        uint64_t strStarveCycles =  counterResults.StrStarveCycles[s];
+        // Skip ports without activity
+        if (strBusyCycles <= 0 || strNumTranx == 0)
+                continue;
+
+        double avgSize    =  (double) strDataBytes / (double) strNumTranx * 0.001 ;
+        double linkStarve = (double) strStarveCycles / (double) strBusyCycles * 100.0;
+        double linkStall =  (double) strStallCycles / (double) strBusyCycles * 100.0;
+        double linkUtil =  100.0 - linkStarve - linkStall;
+        writer->writeKernelStreamSummary(deviceName, cuPortName, strNumTranx, avgSize, linkUtil, linkStarve, linkStall);
       }
     }
   }
@@ -1209,7 +1253,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
       //double totalKernelTimeMsec = PerfCounters.getTotalKernelExecutionTime(deviceName);
       double maxTransferRateMBps = getGlobalMemoryMaxBandwidthMBps();
 
-      int s = 0;
+      unsigned int s = 0;
       if (HostSlotIndex == 0)
         s = numHostSlots;
       for (; s < numSlots; ++s) {
@@ -1314,7 +1358,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
 
       // Gather unique names of monitored CUs on this device
       std::map<std::string, uint64_t> cuNameTranxMap;
-      int s;
+      unsigned int s;
       if (HostSlotIndex == 0)
         s = numHostSlots;
       else 
@@ -1600,8 +1644,8 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
                 // TODO: deal with arguments connected to multiple memory banks
                 // TODO: store DDR bank as a string not an integer!
                 auto memidx_mask = cu->get_memidx(index);
-                auto memidx = 0;
-                for (auto memidx=0; memidx<memidx_mask.size(); ++memidx) {
+		// auto memidx = 0;
+                for (unsigned int memidx=0; memidx<memidx_mask.size(); ++memidx) {
                   if (memidx_mask.test(memidx)) {
                     // Get bank tag string from index
                     memoryName = "DDR[0]";

@@ -56,10 +56,10 @@ namespace XCL {
 
   RTSingleton::RTSingleton()
   : Status( CL_SUCCESS ),
+    Platform( nullptr ),
     ProfileMgr( nullptr ),
     DebugMgr( nullptr ),
-    Platform( nullptr ),
-	ProfileFlags( 0 )
+    ProfileFlags( 0 )
   {
     ProfileMgr = new RTProfile(ProfileFlags);
     startProfiling();
@@ -295,7 +295,6 @@ namespace XCL {
     config.debugIP[DEBUG_IP_TYPE::AXI_STREAM_MONITOR] = {};
     std::string debug_ip_layout_path = "/sys/bus/pci/devices/" + config.user_name + "/debug_ip_layout";
     std::ifstream debug_ip_layout_file(debug_ip_layout_path.c_str(), std::ifstream::binary);
-    uint32_t count = 0;
     char buffer[65536];
     if( debug_ip_layout_file.good() ) {
         debug_ip_layout_file.read(buffer, 65536);
