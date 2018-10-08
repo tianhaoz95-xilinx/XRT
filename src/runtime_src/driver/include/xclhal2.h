@@ -98,11 +98,11 @@ struct xclDeviceInfo2 {
   unsigned short mPCIeLinkWidth;
   unsigned short mPCIeLinkSpeed;
   unsigned short mDMAThreads;
-  short mOnChipTemp;
-  short mFanTemp;
-  unsigned short  mVInt;
-  unsigned short  mVAux;
-  unsigned short  mVBram;
+  unsigned short mOnChipTemp;
+  unsigned short mFanTemp;
+  unsigned short mVInt;
+  unsigned short mVAux;
+  unsigned short mVBram;
   float mCurrent;
   unsigned short mNumClocks;
   unsigned short mFanSpeed;
@@ -114,8 +114,8 @@ struct xclDeviceInfo2 {
   unsigned long long mPexCurr;
   unsigned long long mAuxCurr;
   unsigned short mFanRpm;
-  short mDimmTemp[4];
-  short mSE98Temp[4];
+  unsigned short mDimmTemp[4];
+  unsigned short mSE98Temp[4];
   unsigned short m3v3Pex;
   unsigned short m3v3Aux;
   unsigned short mDDRVppBottom;
@@ -1096,21 +1096,23 @@ enum xclQueueRequestFlag {
  */
 struct xclQueueRequest {
     xclQueueRequestKind op_code;
-    xclReqBuffer*        bufs;
+    xclReqBuffer*       bufs;
     uint32_t	        buf_num;
     char*               cdh;
     uint32_t	        cdh_len;
     uint32_t		flag;
     void*		priv_data;
-    struct timespec	timeout;
+    uint32_t            timeout;
 };
 
 /**
  * struct xclReqCompletion - read/write completion
+ * keep this in sync with cl_streams_poll_req_completions
+ * in driver/include/stream.h
  */
 struct xclReqCompletion {
     char			resv[64]; /* reserved for meta data */
-    struct xclQueueRequest	*req;
+    void			*priv_data;
     size_t			nbytes;
     int				err_code;
 };
@@ -1169,7 +1171,7 @@ XCL_DRIVER_DLLESPEC ssize_t xclReadQueue(xclDeviceHandle handle, uint64_t q_hdl,
  *
  * return number of requests been completed.
  */ 
-XCL_DRIVER_DLLESPEC int xclPollCompletion(xclDeviceHandle handle, int min_compl, int max_compl, xclReqCompletion *comps, struct timespec *timeout); 
+XCL_DRIVER_DLLESPEC int xclPollCompletion(xclDeviceHandle handle, int min_compl, int max_compl, xclReqCompletion *comps, int* actual_compl, int timeout); 
 
 /* Hack for xbflash only */
 XCL_DRIVER_DLLESPEC char *xclMapMgmt(xclDeviceHandle handle);
