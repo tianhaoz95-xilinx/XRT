@@ -324,7 +324,7 @@ namespace XCL
 
           setsid();
           // comment this out to clean unused variable error
-          // int retval = execv(p_cmd, p_args);
+          execv(p_cmd, p_args);
           // Never should get here... execv does not return
           throw std::runtime_error("Error during execv");
         }
