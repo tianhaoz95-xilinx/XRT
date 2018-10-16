@@ -53,12 +53,10 @@ namespace XCL
 
     // Launch background vivado (or vivado_lab) batch process.
     // Changes to the given dir before launch.
-    void launch_vivado_lab();
-
     void launch_vivado();
 
     // Launch vivado in interactive GUI mode to view waveform capture
-    void launch_vivado_lab_interactive();
+    void launch_vivado_interactive();
 
     // Need to give vivado process time to load the tcl script
     // If we exceed a timeout threshold, a runtime exception is
@@ -80,6 +78,11 @@ namespace XCL
     // and then delete the directory.
     void cleanup_working_directory();
 
+    bool find_set_vivado_exe();
+    bool find_set_vivado_lab();
+    bool find_set_vivado();
+    bool find_set_xvc_pcie();
+
     bool check_vivado_lab_availability();
     bool check_vivado_availability();
     bool check_xvc_pcie_availability();
@@ -88,6 +91,14 @@ namespace XCL
     std::string ID;
     std::string workspace_root;
     std::string vivado_lab_location;
+
+    // Holds the full path to vivado_lab or vivado, and xvc_pcie
+    std::string vivado_exe_path;
+    // Holds the full path to the executable to be used : vivado_lab (if available) or vivado 
+    std::string vivado_exe;
+    // Holds the full path to the xvc_pcie executable to be used 
+    std::string xvc_pcie_exe;
+
     unsigned int xvc_pcie_port;
     unsigned int driver_instance;
     std::string optional_ini_parameters;
