@@ -70,7 +70,7 @@ namespace {
     return debug_path.string();
   }
 
-
+#if 0
   const std::string get_vivado_lab_cmd()
   {
     // Returns the full path to vivado_lab or vivado
@@ -86,7 +86,7 @@ namespace {
     const std::string cmd = "/proj/xbuilds/2018.3_daily_latest/labtools_installs/lin64/Vivado_Lab/2018.3/bin/xvc_pcie";
     return cmd;
   }
-
+#endif
 
   const std::string get_viewwave_tcl_file()
   {
@@ -341,6 +341,8 @@ namespace XCL
           // session id. Required to kill all 3 processes in a vivado
           // type loader. Otherwise we get zombies.
           // TODO: There must be a better way to kill a group of processes
+          kill((-1)*(m_pid), sig);
+#if 0
           std::string cmd = "ps -s " + std::to_string(m_pid) + " -o pid=";
           FILE *pipe = popen(cmd.c_str(), "r");
           if (!pipe) {
@@ -359,6 +361,7 @@ namespace XCL
             system(cmd.c_str());
           }
           m_pid = 0;
+#endif
         }
       }
 
@@ -449,13 +452,7 @@ namespace XCL
       copy_user_tcl_template();
       setup_working_directory();
       launch_xvc_pcie();
-      if (vivado_lab_available) {
-        launch_vivado_lab();
-      } else if (vivado_available) {
-        launch_vivado();
-      } else {
-        throw std::runtime_error("Neither of Vivado and Vivado Lab is available: Someone deleted it after the launching");
-      }
+      launch_vivado();
       wait_until_ready();
       arm_ila_trigger();
     }
@@ -530,7 +527,7 @@ namespace XCL
     if (valid) {
       cleanup_working_directory();
       if (m_interactive) {
-        launch_vivado_lab_interactive();
+        launch_vivado_interactive();
       }
     }
   }
@@ -614,27 +611,19 @@ namespace XCL
     // Throw an exception if we are missing 2018.3 vivado and vivado_lab
     // Throw an exception if we are missing 2018.3 xvc_pcie
     // TODO: Implement Me
+
+    find_set_vivado_exe();
+    find_set_xvc_pcie();
+
     std::cout << "\n";
     std::cout << "server script    : " << get_server_tcl_file() << "\n";
     std::cout << "client script    : " << get_client_tcl_file() << "\n";
     std::cout << "user trigger file: " << get_user_tcl_file() << "\n";
     std::cout << "ltx file         : " << get_ltx_file() << "\n";
-    std::cout << "vivado           : " << get_vivado_lab_cmd() << "\n";
-    std::cout << "xvc_pcie         : " << get_xvc_pcie_cmd() << "\n";
+    std::cout << "vivado           : " << vivado_exe << "\n";
+    std::cout << "xvc_pcie         : " << xvc_pcie_exe << "\n";
     std::cout << "kernel driver    : " << get_xvc_driver(driver_instance) << "\n";
     std::cout << "\n";
-
-    vivado_lab_available = check_vivado_lab_availability();
-    vivado_available = check_vivado_availability();
-    xvc_pcie_available = check_xvc_pcie_availability();
-
-    if (!xvc_pcie_available) {
-      throw std::runtime_error("XVC PCIe server not available");
-    }
-
-    if (!vivado_lab_available && !vivado_available) {
-      throw std::runtime_error("Neither of Vivado and Vivado Lab is available");
-    }
   }
 
 
@@ -659,7 +648,6 @@ namespace XCL
     copy_to_dir(get_user_tcl_file(), working_dir);
   }
 
-
   void LabtoolController::launch_xvc_pcie()
   {
     // TODO: Throw exception if port in use
@@ -667,7 +655,7 @@ namespace XCL
       "-s", std::string("TCP::")+std::to_string(xvc_pcie_port),
       "-d", get_xvc_driver(driver_instance)
     };
-    mp_xvcpcie = new BackgroundProcess(get_xvc_pcie_cmd(), args);
+    mp_xvcpcie = new BackgroundProcess(xvc_pcie_exe, args);
     mp_xvcpcie->setDir(get_working_dir());
     std::string log = "xvc_pcie_" + std::to_string(driver_instance) + ".log";
     mp_xvcpcie->setLog(log);
@@ -675,31 +663,27 @@ namespace XCL
     mp_xvcpcie->start();
   }
 
-
-  void LabtoolController::launch_vivado_lab()
+  void LabtoolController::launch_vivado()
   {
     // Changes to the given dir before launch.
     // Assumes that ltx and tcl files are already copied into the working dir.
-    const std::string cmd = get_vivado_lab_cmd();
-    const std::string project = "project_1";
+
     int hws_port = 3121;
-    std::string host = "localhost";
 
     std::vector<std::string> args;
     args.push_back("-source");
-    std::string tclFile = get_server_tcl_file();
-    args.push_back(tclFile);
+    args.push_back(get_server_tcl_file());
     args.push_back("-mode");
     args.push_back("tcl");
     args.push_back("-tclargs");
-    args.push_back(project);
+    args.push_back("project_1");
     std::string ltxFile = base_filename(get_ltx_file());
     args.push_back(ltxFile);
-    args.push_back(host);
+    args.push_back("localhost");
     args.push_back(std::to_string(xvc_pcie_port));
     args.push_back(std::to_string(hws_port));
 
-    mp_vivado = new BackgroundProcess(cmd, args);
+    mp_vivado = new BackgroundProcess(vivado_exe, args);
     mp_vivado->setDir(get_working_dir());
     std::string log = "vivado_log.out";
     mp_vivado->setLog(log);
@@ -707,25 +691,20 @@ namespace XCL
     mp_vivado->start();
   }
 
-  void LabtoolController::launch_vivado() {
-
-  }
-
-  void LabtoolController::launch_vivado_lab_interactive()
+  void LabtoolController::launch_vivado_interactive()
   {
     std::vector<std::string> args = {
         "-source", get_viewwave_tcl_file(),
         "-tclargs", "waveform.ila"
     };
-    BackgroundProcess p(get_vivado_lab_cmd(), args);
+    BackgroundProcess p(vivado_exe, args);
     p.setDir(get_working_dir());
-    std::string log = "vivado_log.out";
+    std::string log = "vivado_interactive_log.out";
     p.setLog(log);
     std::cout << "\nLaunching vivado GUI to view captured wave...\n";
     p.start();
     p.wait();
   }
-
 
   void LabtoolController::wait_until_ready()
   {
@@ -795,8 +774,77 @@ namespace XCL
     // TODO: Implement me
   }
 
-  bool LabtoolController::check_vivado_lab_availability() {
+  bool LabtoolController::find_set_vivado_exe()
+  {
+    if(find_set_vivado_lab()) {
+        return true;
+    }
+    if(find_set_vivado()) {
+        return true;
+    }
+    if(!vivado_lab_available && !vivado_available) {
+      throw std::runtime_error("Neither of Vivado and Vivado Lab is available");
+    }
     return false;
+  }
+
+  bool LabtoolController::find_set_vivado_lab()
+  {
+    if(vivado_lab_location.empty()) {
+        vivado_lab_available = false;
+        return vivado_lab_available;
+    }
+
+    std::string vivado_lab_tool = vivado_lab_location + "/vivado_lab";
+    if (!bfs::exists(vivado_lab_tool)) {
+        vivado_lab_available = false;
+        return vivado_lab_available;
+    }
+    vivado_exe_path = vivado_lab_location;
+    vivado_exe = vivado_lab_tool;
+    vivado_lab_available = true;
+    return vivado_lab_available;
+  }
+
+  bool LabtoolController::find_set_vivado()
+  {
+    std::string vivado_env(getenv("XILINX_VIVADO"));
+    if(vivado_env.empty()) {
+        vivado_available = false;
+        return false;
+    }
+
+    std::string vivado_tool = vivado_env + "/bin/vivado";
+    if(!bfs::exists(vivado_tool)) {
+        vivado_available = false;
+        return false;
+    }
+    vivado_exe_path = vivado_env + "/bin";
+    vivado_exe = vivado_tool;
+    vivado_available = true;
+    return vivado_available;
+  }
+
+  bool LabtoolController::find_set_xvc_pcie()
+  {
+    if(vivado_exe_path.empty()) {
+        xvc_pcie_available = false;
+        return false;
+    }
+
+    std::string xvc_pcie_path = vivado_exe_path + "/xvc_pcie";
+    if(!bfs::exists(xvc_pcie_path)) {
+        xvc_pcie_available = false;
+        throw std::runtime_error("XVC PCIe server not available");
+    }
+
+    xvc_pcie_available = true;
+    xvc_pcie_exe = xvc_pcie_path;
+    return true;
+  }
+
+  bool LabtoolController::check_vivado_lab_availability() {
+    return true;
   }
 
   bool LabtoolController::check_vivado_availability() {
