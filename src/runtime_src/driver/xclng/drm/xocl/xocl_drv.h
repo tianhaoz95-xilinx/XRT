@@ -94,6 +94,9 @@ static inline bool uuid_is_null(const xuid_t *uuid)
 #define	XOCL_DSA_VERSION(xdev)			\
 	(XDEV(xdev)->priv.dsa_ver)
 
+#define XOCL_DSA_IS_MPSOC(xdev)                \
+	(XDEV(xdev)->priv.mpsoc)
+
 #define	XOCL_DEV_ID(pdev)			\
 	PCI_DEVID(pdev->bus->number, pdev->devfn)
 
@@ -408,6 +411,7 @@ struct xocl_mb_funcs {
 struct xocl_dna_funcs {
 	u32 (*status)(struct platform_device *pdev);
 	u32 (*capability)(struct platform_device *pdev);
+	void (*write_cert)(struct platform_device *pdev, const char __user *buf, u32 len);
 };
 
 #define	XMC_DEV(xdev)		\
@@ -425,6 +429,8 @@ struct xocl_dna_funcs {
 	(DNA_DEV(xdev) ? DNA_OPS(xdev)->status(DNA_DEV(xdev)) : 0)
 #define	xocl_dna_capability(xdev)			\
 	(DNA_DEV(xdev) ? DNA_OPS(xdev)->capability(DNA_DEV(xdev)) : 2)
+#define xocl_dna_write_cert(xdev, data, len)  \
+	(DNA_DEV(xdev) ? DNA_OPS(xdev)->write_cert(DNA_DEV(xdev), data, len) : 0)
 
 #define	MB_DEV(xdev)		\
 	SUBDEV(xdev, XOCL_SUBDEV_MB).pldev
@@ -453,8 +459,9 @@ enum mailbox_request {
 	MAILBOX_REQ_TEST_READ,
 	MAILBOX_REQ_LOCK_BITSTREAM,
 	MAILBOX_REQ_UNLOCK_BITSTREAM,
-	MAILBOX_REQ_RESET_BEGIN,
-	MAILBOX_REQ_RESET_END,
+	MAILBOX_REQ_HOT_RESET_BEGIN,
+	MAILBOX_REQ_HOT_RESET_END,
+	MAILBOX_REQ_RESET_ERT,
 };
 
 struct mailbox_req_bitstream_lock {
@@ -564,6 +571,10 @@ int xocl_subdev_get_devinfo(struct xocl_subdev_info *subdev_info, struct resourc
 void xocl_subdev_register(struct platform_device *pldev, u32 id,
 	void *cb_funcs);
 void xocl_fill_dsa_priv(xdev_handle_t xdev_hdl, struct xocl_board_private *in);
+struct pci_dev *xocl_hold_userdev(xdev_handle_t xdev_hdl);
+void xocl_release_userdev(struct pci_dev *userdev);
+int xocl_xrt_version_check(xdev_handle_t xdev_hdl,
+        struct axlf *bin_obj);
 
 /* context helpers */
 int xocl_ctx_init(struct device *dev, struct xocl_context_hash *ctx_hash,

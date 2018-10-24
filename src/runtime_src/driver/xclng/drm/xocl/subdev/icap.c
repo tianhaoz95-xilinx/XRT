@@ -199,27 +199,49 @@ const static struct xclmgmt_ocl_clockwiz {
 	{/*1000*/  500, 0x0a01, 0x0002}
 };
 
-/* hack to user space to reset scheduler after AXI reset 
+/* hack to user space to reset scheduler after AXI reset
  * defined in xocl_drv.c */
-int xocl_reset_scheduler(struct pci_dev *pdev);
-static int reset_scheduler(struct icap *icap)
+static void reset_scheduler(struct icap *icap)
 {
-	int ret=1;
+	int err = -EINVAL;
+#if 0
+	size_t resplen = sizeof (err);
+	struct mailbox_req mbreq = { 0 };
+#endif
+	int xocl_reset_scheduler(struct pci_dev *pdev);
 	int (*reset)(struct pci_dev *pdev);
+	xdev_handle_t xdev = xocl_get_xdev(icap->icap_pdev);
+
+	ICAP_INFO(icap, "calling xocl_reset_scheduler");
+
+#if 0
+	mbreq.req = MAILBOX_REQ_RESET_ERT;
+	(void) xocl_peer_request(xocl_get_xdev(icap->icap_pdev),
+		&mbreq, &err, &resplen, NULL, NULL);
+	if (err == 0)
+		return;
+#endif
+
 	reset = symbol_get(xocl_reset_scheduler);
 	if (reset) {
-		struct pci_dev *pdev = XOCL_PL_TO_PCI_DEV(icap->icap_pdev);
-		unsigned int slot = PCI_SLOT(pdev->devfn);
-		struct pci_dev *user_dev = pci_get_slot(pdev->bus,PCI_DEVFN(slot,0));
+		struct pci_dev *user_dev;
 
-		if (!user_dev)
-			return 1;
+		user_dev = xocl_hold_userdev(xdev);
 
-		ICAP_INFO(icap, "calling xocl_reset_scheduler");
-		ret = reset(user_dev);
-		symbol_put(xocl_reset_notify);
+		if (!user_dev) {
+			err = -EFAULT;
+			goto failed;
+		}
+	
+		err = reset(user_dev);
+
+		xocl_release_userdev(user_dev);
+		symbol_put(xocl_reset_scheduler);
 	}
-	return ret;
+
+failed:
+	if (err)
+		ICAP_ERR(icap, "calling xocl_reset_scheduler failed: %d", err);
 }
 
 static struct icap_bitstream_user *alloc_user(pid_t pid)
@@ -731,7 +753,7 @@ static inline void free_clock_freq_topology(struct icap *icap)
 }
 
 static int icap_setup_clock_freq_topology(struct icap *icap,
-	const char __user *buffer, unsigned long length)	
+	const char __user *buffer, unsigned long length)
 {
 	int err;
 
@@ -751,7 +773,7 @@ static int icap_setup_clock_freq_topology(struct icap *icap,
 	}
 	icap->icap_clock_freq_topology_length = length;
 
-	return 0;    
+	return 0;
 }
 
 static inline void free_clear_bitstream(struct icap *icap)
@@ -1310,8 +1332,11 @@ static long icap_download_clear_bitstream(struct icap *icap)
 	return err;
 }
 
-static long axlf_set_freqscaling(struct icap *icap, struct platform_device *pdev, 
-	const char __user *clk_buf, unsigned long length) 
+/*
+ * This function should be called with icap_mutex lock held
+ */
+static long axlf_set_freqscaling(struct icap *icap, struct platform_device *pdev,
+	const char __user *clk_buf, unsigned long length)
 {
 	long err = 0;
 	char *buffer = NULL;
@@ -1344,13 +1369,13 @@ static long axlf_set_freqscaling(struct icap *icap, struct platform_device *pdev
 		goto free_buffers;
 	}
 
-	//Error checks - we support 1 data clk (reqd), one kernel clock(reqd) and 
+	//Error checks - we support 1 data clk (reqd), one kernel clock(reqd) and
 	//at most 2 system clocks (optional/reqd for aws).
 	//Data clk needs to be the first entry, followed by kernel clock
 	//and then system clocks
 	//
 
-	for (i = 0; i < freqs->m_count; i++) 
+	for (i = 0; i < freqs->m_count; i++)
 	{
 		freq = &(freqs->m_clock_freq[i]);
 		if(freq->m_type == CT_DATA) {
@@ -1380,7 +1405,7 @@ static long axlf_set_freqscaling(struct icap *icap, struct platform_device *pdev
 			"More than 2 system clocks found in clock topology");
 		goto free_buffers;
 	}
-	
+
 	for (i = 0; i < freqs->m_count; i++) {
 		freq = &(freqs->m_clock_freq[i]);
 		if(freq->m_type == CT_DATA) {
@@ -1409,7 +1434,7 @@ static long axlf_set_freqscaling(struct icap *icap, struct platform_device *pdev
 		"sys_freq[0]: %d, sys_freq[1]: %d",
 		ARRAY_SIZE(target_freqs), target_freqs[0], target_freqs[1],
 		target_freqs[2], target_freqs[3]);
-	err = icap_ocl_set_freqscaling(pdev, 0, target_freqs, 4);
+	err = set_freqs(icap, target_freqs, 4);
 
 free_buffers:
 	kfree(buffer);
@@ -1508,8 +1533,10 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 	uint64_t secondaryFirmwareOffset = 0;
 	uint64_t secondaryFirmwareLength = 0;
 	const struct axlf_section_header* primaryHeader = NULL;
+	const struct axlf_section_header* clockHeader = NULL;
 	const struct axlf_section_header* secondaryHeader = NULL;
 	const struct axlf_section_header* ipLayout = NULL;
+	const struct axlf_section_header* certificate = NULL;
 	uint64_t copy_buffer_size = 0;
 	struct axlf* copy_buffer = NULL;
 	xdev_handle_t xdev = xocl_get_xdev(pdev);
@@ -1560,6 +1587,11 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 		goto done;
 	}
 
+	if (xocl_xrt_version_check(xdev, &bin_obj)) {
+		ICAP_ERR(icap, "XRT version does not match");
+		return -EINVAL;
+	}
+
 	/* Match the xclbin with the hardware. */
 	if (!xocl_verify_timestamp(xdev,
 		bin_obj.m_header.m_featureRomTimeStamp)) {
@@ -1599,19 +1631,8 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 	 * Find sections in xclbin.
 	 */
 	ICAP_INFO(icap, "finding CLOCK_FREQ_TOPOLOGY section");
-	primaryHeader = get_axlf_section(icap, copy_buffer, CLOCK_FREQ_TOPOLOGY);
-	if (primaryHeader != NULL) {
-		primaryFirmwareOffset = primaryHeader->m_sectionOffset;
-		primaryFirmwareLength = primaryHeader->m_sectionSize;
-		buffer = (char __user *)u_xclbin;
-		buffer += primaryFirmwareOffset;
-		err = axlf_set_freqscaling(icap, pdev, buffer, primaryFirmwareLength);
-		if (err)
-			goto done;
-		err = icap_setup_clock_freq_topology(icap, buffer, primaryFirmwareLength);
-		if (err)
-			goto done;
-	}
+	/* Read the CLOCK section but defer changing clocks to later */
+	clockHeader = get_axlf_section(icap, copy_buffer, CLOCK_FREQ_TOPOLOGY);
 
 	ICAP_INFO(icap, "finding ip layout sections");
 	ipLayout = get_axlf_section(icap, copy_buffer, IP_LAYOUT);
@@ -1628,7 +1649,7 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 		err = -EINVAL;
 		goto done;
 	}
-  
+
 	ICAP_INFO(icap, "finding bitstream sections");
 	primaryHeader = get_axlf_section(icap, copy_buffer, BITSTREAM);
 	if (primaryHeader == NULL) {
@@ -1661,6 +1682,22 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 		goto done;
 	}
 
+	/* All clear, go ahead and start fiddling with hardware */
+
+	if (clockHeader != NULL) {
+		uint64_t clockFirmwareOffset = clockHeader->m_sectionOffset;
+		uint64_t clockFirmwareLength = clockHeader->m_sectionSize;
+		buffer = (char __user *)u_xclbin;
+		buffer += clockFirmwareOffset;
+		err = axlf_set_freqscaling(icap, pdev, buffer, clockFirmwareLength);
+		if (err)
+			goto done;
+		err = icap_setup_clock_freq_topology(icap, buffer, clockFirmwareLength);
+		if (err)
+			goto done;
+	}
+
+
 	icap->icap_bitstream_id = 0;
 	uuid_copy(&icap->icap_bitstream_uuid, &uuid_null);
 
@@ -1685,7 +1722,7 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 	}
 
 	/* restrict any dynamically added sub-device and has up to 4 base address,
-	 * Has pre-defined length 
+	 * Has pre-defined length
 	 *  Ex:    "ip_data": {
 	 *         "m_type": "IP_DNASC",
 	 *         "properties": "0x0",
@@ -1709,7 +1746,7 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 			dna_check = true;
 
 		if(layout->m_ip_data[i].m_type==IP_KERNEL)
-			continue;	
+			continue;
 
 		/*!= IP_KERNEL in the future*/
 		if(layout->m_ip_data[i].m_type == IP_DNASC){
@@ -1757,6 +1794,25 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 
 	if(dna_check){
 		ICAP_INFO(icap, "DNA version: %s", (xocl_dna_capability(xdev) & 0x1)? "AXI" : "BRAM");
+		/* should be removed after integrated certificate with xclbin*/
+		if(xocl_dna_capability(xdev) & 0x1){
+			certificate = get_axlf_section(icap, copy_buffer, DNA_CERTIFICATE);
+			if(certificate == NULL) {
+				ICAP_ERR(icap, "Can't get certificate section");
+				err = -EACCES;
+				goto dna_check_failed;
+			}
+			
+			if(certificate->m_sectionSize % 64 || certificate->m_sectionSize < 576) {
+				ICAP_ERR(icap, "invalid certificate size, should be at least 576 bytes and a multiple of 64 bytes but size %llu", certificate->m_sectionSize);
+				err = -EACCES;
+				goto dna_check_failed;
+			}
+			ICAP_INFO(icap, "DNA Certificate Size 0x%llx", certificate->m_sectionSize);
+			buffer = (char __user *)u_xclbin;
+			buffer += certificate->m_sectionOffset;
+			xocl_dna_write_cert(xdev, buffer, certificate->m_sectionSize);
+		}
 		err = (0x1 & xocl_dna_status(xdev)) ? 0 : -EACCES;
 		if (err){
 			ICAP_ERR(icap, "DNA inside xclbin is invalid");
@@ -1786,7 +1842,7 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 	}
 	goto done;
 
-dna_check_failed:	
+dna_check_failed:
 add_subdev_failed:
 	for(;id>=0 && id < XOCL_SUBDEV_NUM;--id){
 		if(nums_of_ip_section[id]!=0){
@@ -1978,7 +2034,7 @@ static ssize_t clock_freq_topology_show(struct device *dev,
 	mutex_unlock(&icap->icap_lock);
 
 	return cnt;
-	
+
 }
 
 static DEVICE_ATTR_RO(clock_freq_topology);
