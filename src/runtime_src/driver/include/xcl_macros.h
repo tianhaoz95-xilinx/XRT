@@ -56,4 +56,8 @@
 #define xclSetupInstance_n 28
 #define xclPollCompletion_n 29
 
+#define xclPerfMonReadCounters_AWS_n 30
+#define xclPerfMonGetTraceCount_AWS_n 31
+#define xclPerfMonReadTrace_AWS_n 32
+
 #endif

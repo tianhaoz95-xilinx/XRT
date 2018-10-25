@@ -185,7 +185,11 @@ namespace xclhwemhal2 {
           continue;
         char slotname[128];
         getPerfMonSlotName(type,counter,slotname,128);
-        xclPerfMonReadCounters_RPC_CALL(xclPerfMonReadCounters,wr_byte_count,wr_trans_count,total_wr_latency,rd_byte_count,rd_trans_count,total_rd_latency,sampleIntervalUsec,slotname,accel);
+        if (std::string(mDeviceInfo.mName).find("aws") != std::string::npos) {
+          xclPerfMonReadCounters_RPC_CALL_AWS(xclPerfMonReadCounters_AWS,wr_byte_count,wr_trans_count,total_wr_latency,rd_byte_count,rd_trans_count,total_rd_latency,sampleIntervalUsec,slotname,accel);
+        } else {
+          xclPerfMonReadCounters_RPC_CALL(xclPerfMonReadCounters,wr_byte_count,wr_trans_count,total_wr_latency,rd_byte_count,rd_trans_count,total_rd_latency,sampleIntervalUsec,slotname,accel);
+        }
 #endif
         if (!accel) {
           counterResults.WriteBytes[counter] = wr_byte_count;
@@ -254,7 +258,11 @@ namespace xclhwemhal2 {
         char slotname[128];
         getPerfMonSlotName(type,counter,slotname,128);
 
-        xclPerfMonGetTraceCount_RPC_CALL(xclPerfMonGetTraceCount,ack,no_of_samples,slotname,accel);
+        if (std::string(mDeviceInfo.mName).find("aws") != std::string::npos) {
+          xclPerfMonGetTraceCount_RPC_CALL_AWS(xclPerfMonGetTraceCount_AWS,ack,no_of_samples,slotname,accel);
+        } else {
+          xclPerfMonGetTraceCount_RPC_CALL(xclPerfMonGetTraceCount,ack,no_of_samples,slotname,accel);
+        }
 #endif
       }
       no_of_final_samples = no_of_samples + list_of_events[counter].size();
@@ -323,49 +331,88 @@ namespace xclhwemhal2 {
         // *_RPC_CALL uses unix_socket
         char slotname[128];
         getPerfMonSlotName(type,counter,slotname,128);
-        xclPerfMonReadTrace_RPC_CALL(xclPerfMonReadTrace,ack,samplessize,slotname,accel);
-#endif
-        unsigned int i = 0;
-        for(; i<samplessize && index<(MAX_TRACE_NUMBER_SAMPLES-7); i++)
-        {
-#ifndef _WINDOWS
-          // TODO: Windows build support
-          // r_msg is defined as part of *RPC_CALL definition
-          const xclPerfMonReadTrace_response::events &event = r_msg.output_data(i);
 
-          xclTraceResults result;
-          memset(&result, 0, sizeof(xclTraceResults));
-          result.TraceID = accel ? counter + 64 : counter * 2;
-          result.Timestamp = event.timestamp();
-          result.Overflow = (event.timestamp() >> 17) & 0x1;
-          result.EventFlags = event.eventflags();
-          result.ReadAddrLen = event.arlen();
-          result.WriteAddrLen = event.awlen();
-          result.WriteBytes = (event.wr_bytes());
-          result.ReadBytes  = (event.rd_bytes());
-          result.HostTimestamp = event.host_timestamp();
-          result.EventID = XCL_PERF_MON_HW_EVENT;
-          traceVector.mArray[index++] = result;
+        if (std::string(mDeviceInfo.mName).find("aws") != std::string::npos) {
+          xclPerfMonReadTrace_RPC_CALL_AWS(xclPerfMonReadTrace_AWS,ack,samplessize,slotname,accel);
 #endif
-        }
-        traceVector.mLength = index;
-
-        Event eventObj;
-        for(; i<samplessize ; i++)
-        {
+          unsigned int i = 0;
+          for(; i<samplessize && index<(MAX_TRACE_NUMBER_SAMPLES-7); i++)
+          {
 #ifndef _WINDOWS
-          // TODO: Windows build support
-          // r_msg is defined as part of *RPC_CALL definition
-          const xclPerfMonReadTrace_response::events &event = r_msg.output_data(i);
-          eventObj.timestamp = event.timestamp();
-          eventObj.eventflags = event.eventflags();
-          eventObj.arlen = event.arlen();
-          eventObj.awlen = event.awlen();
-          eventObj.host_timestamp = event.host_timestamp();
-          eventObj.readBytes = event.rd_bytes();
-          eventObj.writeBytes = event.wr_bytes();
-          list_of_events[counter].push_back(eventObj);
+            const xclPerfMonReadTrace_AWS_response::events &event = r_msg.output_data(i);
+            xclTraceResults result;
+            memset(&result, 0, sizeof(xclTraceResults));
+            result.TraceID = accel ? counter + 64 : counter * 2;
+            result.Timestamp = event.timestamp();
+            result.Overflow = (event.timestamp() >> 17) & 0x1;
+            result.EventFlags = event.eventflags();
+            result.ReadAddrLen = event.arlen();
+            result.WriteAddrLen = event.awlen();
+            result.WriteBytes = (event.wr_bytes());
+            result.ReadBytes  = (event.rd_bytes());
+            result.HostTimestamp = event.host_timestamp();
+            result.EventID = XCL_PERF_MON_HW_EVENT;
+            traceVector.mArray[index++] = result;
 #endif
+          }
+          traceVector.mLength = index;
+
+          Event eventObj;
+          for(; i<samplessize ; i++)
+          {
+#ifndef _WINDOWS
+            const xclPerfMonReadTrace_AWS_response::events &event = r_msg.output_data(i);
+            eventObj.timestamp = event.timestamp();
+            eventObj.eventflags = event.eventflags();
+            eventObj.arlen = event.arlen();
+            eventObj.awlen = event.awlen();
+            eventObj.host_timestamp = event.host_timestamp();
+            eventObj.readBytes = event.rd_bytes();
+            eventObj.writeBytes = event.wr_bytes();
+            list_of_events[counter].push_back(eventObj);
+#endif
+          }
+#ifndef _WINDOWS
+        } else {
+          xclPerfMonReadTrace_RPC_CALL(xclPerfMonReadTrace,ack,samplessize,slotname,accel);
+#endif
+          unsigned int i = 0;
+          for(; i<samplessize && index<(MAX_TRACE_NUMBER_SAMPLES-7); i++)
+          {
+#ifndef _WINDOWS
+            const xclPerfMonReadTrace_response::events &event = r_msg.output_data(i);
+            xclTraceResults result;
+            memset(&result, 0, sizeof(xclTraceResults));
+            result.TraceID = accel ? counter + 64 : counter * 2;
+            result.Timestamp = event.timestamp();
+            result.Overflow = (event.timestamp() >> 17) & 0x1;
+            result.EventFlags = event.eventflags();
+            result.ReadAddrLen = event.arlen();
+            result.WriteAddrLen = event.awlen();
+            result.WriteBytes = (event.wr_bytes());
+            result.ReadBytes  = (event.rd_bytes());
+            result.HostTimestamp = event.host_timestamp();
+            result.EventID = XCL_PERF_MON_HW_EVENT;
+            traceVector.mArray[index++] = result;
+#endif
+          }
+          traceVector.mLength = index;
+
+          Event eventObj;
+          for(; i<samplessize ; i++)
+          {
+#ifndef _WINDOWS
+            const xclPerfMonReadTrace_response::events &event = r_msg.output_data(i);
+            eventObj.timestamp = event.timestamp();
+            eventObj.eventflags = event.eventflags();
+            eventObj.arlen = event.arlen();
+            eventObj.awlen = event.awlen();
+            eventObj.host_timestamp = event.host_timestamp();
+            eventObj.readBytes = event.rd_bytes();
+            eventObj.writeBytes = event.wr_bytes();
+            list_of_events[counter].push_back(eventObj);
+#endif
+          }
         }
       }
     }

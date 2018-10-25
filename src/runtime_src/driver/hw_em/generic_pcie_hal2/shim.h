@@ -26,6 +26,7 @@
 
 #include "xclperf.h"
 #include "xcl_api_macros.h"
+#include "xcl_api_legacy_macros.h"
 #include "xcl_macros.h"
 #include "xclbin.h"
 

@@ -190,6 +190,20 @@ message xclPerfMonReadCounters_response {
      optional uint32 total_rd_latency = 6;
 }
 
+message xclPerfMonReadCounters_AWS_call {
+     required string slotname = 1;
+     optional bool accel = 2;
+}
+
+message xclPerfMonReadCounters_AWS_response {
+     optional uint32 wr_byte_count = 1;
+     optional uint32 wr_trans_count = 2;
+     optional uint32 total_wr_latency = 3;
+     optional uint32 rd_byte_count = 4;
+     optional uint32 rd_trans_count = 5;
+     optional uint32 total_rd_latency = 6;
+}
+
 //------------------Trace--------------
 //xclPerfMonGetTraceCount
 message xclPerfMonGetTraceCount_call {
@@ -202,6 +216,16 @@ message xclPerfMonGetTraceCount_response {
      optional uint32 no_of_samples = 1;
 }
 
+message xclPerfMonGetTraceCount_AWS_call {
+     optional bool ack = 1;
+     optional string slotname = 2;
+     optional bool accel = 3;
+}
+
+message xclPerfMonGetTraceCount_AWS_response {
+     optional uint32 no_of_samples = 1;
+}
+
 //---------------------------------------------
 //xclPerfMonReadTrace
 message xclPerfMonReadTrace_call {
@@ -211,6 +235,25 @@ message xclPerfMonReadTrace_call {
 }
 
 message xclPerfMonReadTrace_response {
+   message events {
+       optional uint32 awlen = 1;
+       optional uint32 arlen = 2;
+       optional uint32 eventflags = 3;
+       optional uint32 timestamp = 4;
+       optional uint64 host_timestamp = 5;
+       optional uint32 rd_bytes = 6;
+       optional uint32 wr_bytes = 7;
+    }
+     repeated events output_data = 8;
+}
+
+message xclPerfMonReadTrace_AWS_call {
+     optional bool ack = 1;
+     optional string slotname = 2;
+     optional bool accel = 3;
+}
+
+message xclPerfMonReadTrace_AWS_response {
    message events {
        optional uint32 awlen = 1;
        optional uint32 arlen = 2;
