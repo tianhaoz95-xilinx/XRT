@@ -191,6 +191,7 @@ using addr_type = uint64_t;
       bool isXPR()           { return bXPR; }
       void setXPR(bool _xpr) { bXPR = _xpr; }
       std::string deviceDirectory;
+      bool isAWSLegacy () { return std::string(mDeviceInfo.mName).find("xilinx_aws-vu9p-f1-04261818_dynamic_5_0") != std::string::npos; }
 
       //QDMA Support
       int xclCreateWriteQueue(xclQueueContext *q_ctx, uint64_t *q_hdl);
