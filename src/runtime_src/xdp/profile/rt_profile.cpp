@@ -1009,6 +1009,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
      */
     uint32_t kernelClockMhz = getKernelClockFreqMHz(deviceName);
     double deviceCyclesMsec = kernelClockMhz * 1000.0 ;
+    numSlots = XCL::RTSingleton::Instance()->getProfileNumberSlots(XCL_PERF_MON_ACCEL, deviceName);
     std::string cuName = "";
     std::string kernelName ="";
     bool deviceDataExists = (DeviceBinaryCuSlotsMap.find(key) == DeviceBinaryCuSlotsMap.end()) ? false : true;
@@ -1703,6 +1704,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
   {
     argNames = "All";
     memoryName = "N/A";
+    std::string portName2 = portName.substr(0, portName.find_last_of(":"));
 
     //XOCL_DEBUGF("getArgumentsBank: %s/%s\n", cuName.c_str(), portName.c_str());
 
@@ -1711,7 +1713,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
       std::string currCU   = std::get<0>(row);
       std::string currPort = std::get<1>(row);
 
-      if ((currCU == cuName) && (currPort == portName)) {
+      if ((currCU == cuName) && (currPort == portName2)) {
         argNames   = std::get<2>(row);
         memoryName = std::get<3>(row);
         break;
