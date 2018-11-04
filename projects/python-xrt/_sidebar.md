@@ -5,7 +5,7 @@
 	* [Core](/projects/python-xrt/en/api/core/overview)
 		* [Device Management API](/projects/python-xrt/en/api/core/device_management_api)
 		* [Buffer Management API](/projects/python-xrt/en/api/core/buffer_management_api)
-		* [Compute Unit Management API](/projects/python-xrt/en/api/core/compute_unit_management_api)
+		* [Kernel Management API](/projects/python-xrt/en/api/core/kernel_management_api)
 		* [Register Read/Write API](/projects/python-xrt/en/api/core/register_read_write_api)
 		* [Performance Monitoring API](/projects/python-xrt/en/api/core/performance_monitoring_api)
 		* [Streaming API](/projects/python-xrt/en/api/core/streaming_api)
