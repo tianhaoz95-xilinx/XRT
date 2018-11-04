@@ -1,1 +1,0 @@
-KERNEL=="awsmgmt*",MODE="0666",SYMLINK="%k"
