@@ -1,3 +1,3 @@
-# Project List
+# Welcome
 
-> An awesome project.
+> This repository maintains a collection of projects built on top of XRT
