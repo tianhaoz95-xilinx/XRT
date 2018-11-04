@@ -10,6 +10,6 @@ Coming soon
 
 ## Architecture
 
-![architecture](/projects/python-xrt/asset/architecture.svg)
+![architecture](/projects/python-xrt/asset/architecture_v2.svg)
 
 For more details, please go to the [**Main Project Page**](/projects/python-xrt/)
