@@ -79,6 +79,10 @@ cl_int
 get_profile_slot_name(key k, std::string& deviceName, xclPerfMonType type,
 		              unsigned slotnum, std::string& slotName);
 
+unsigned
+get_profile_slot_properties(key k, std::string& deviceName, xclPerfMonType type,
+		              unsigned slotnum);
+
 cl_int
 get_profile_kernel_name(key k, const std::string& deviceName, const std::string& cuName, std::string& kernelName);
 
@@ -159,7 +163,10 @@ getProfileNumSlots(key k, xclPerfMonType type);
 cl_int
 getProfileSlotName(key k, xclPerfMonType type, unsigned slotnum, std::string& slotName);
 
-cl_int
+unsigned
+getProfileSlotProperties(key k, xclPerfMonType type, unsigned slotnum);
+
+cl_int 
 writeHostEvent(key k, xclPerfMonEventType type, xclPerfMonEventID id);
 
 cl_int

@@ -123,11 +123,15 @@ namespace XCL {
     DeviceInfo getDeviceInfo(std::string& deviceName);
     void getProfileSlotName(xclPerfMonType type, std::string& deviceName,
                             unsigned slotnum, std::string& slotName);
+    unsigned getProfileSlotProperties(xclPerfMonType type, std::string& deviceName, unsigned slotnum);
     void getProfileKernelName(const std::string& deviceName, const std::string& cuName, std::string& kernelName);
     void setOclProfileMode(unsigned slotnum, std::string type);
     size_t getDeviceTimestamp(std::string& deviceName);
     double getReadMaxBandwidthMBps();
     double getWriteMaxBandwidthMBps();
+
+    void setObjectsReleased(bool objectsReleased) {IsObjectsReleased = objectsReleased;}
+    bool isObjectsReleased() {return IsObjectsReleased;}
 
   public:
     void registerLabtool(LabtoolController* instance);
@@ -165,6 +169,7 @@ namespace XCL {
 
     e_flow_mode FlowMode = CPU;
     bool OclProfilingOn = true;
+    bool IsObjectsReleased = false;
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
     std::unordered_map<std::string, LabtoolController*> labtoolPool;
