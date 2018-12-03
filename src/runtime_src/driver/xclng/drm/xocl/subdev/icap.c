@@ -684,6 +684,8 @@ static int set_and_verify_freqs(struct icap* icap, unsigned short* freqs, int nu
 		return err;
 
 	for(i = 0; i <min(ICAP_MAX_NUM_CLOCKS, num_freqs); ++i) {
+		if(!freqs[i])
+			continue;
 		clock_freq_counter = icap_get_clock_frequency_counter_khz(icap, i);
 		if(clock_freq_counter == 0){
 			err = -EDOM;
@@ -1894,8 +1896,10 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 			if (alloc_and_get_axlf_section(icap, copy_buffer,
 				DNA_CERTIFICATE, buffer,
 				(void **)&cert, &section_size) != 0) {
+
+				// We keep dna sub device if IP_DNASC presents
 				ICAP_ERR(icap, "Can't get certificate section");
-				goto done;
+				goto dna_cert_fail;
 			}
 
 			ICAP_INFO(icap, "DNA Certificate Size 0x%llx", section_size);
@@ -1913,7 +1917,7 @@ static int icap_download_bitstream_axlf(struct platform_device *pdev,
 			err = 0; /* xclbin is valid */
 		} else {
 			ICAP_ERR(icap, "DNA inside xclbin is invalid");
-			goto done;
+			goto dna_cert_fail;
 		}
 	}
 
@@ -1943,6 +1947,7 @@ done:
 		xocl_subdev_destroy_by_id(xdev, XOCL_SUBDEV_DNA);
 		xocl_subdev_destroy_by_id(xdev, XOCL_SUBDEV_MIG);
 	}
+dna_cert_fail:
 	mutex_unlock(&icap->icap_lock);
 	vfree(layout);
 	vfree(memtopo);
@@ -2042,7 +2047,10 @@ static int icap_lock_bitstream(struct platform_device *pdev, const xuid_t *id,
 	struct icap *icap = platform_get_drvdata(pdev);
 	int err = 0;
 
-	BUG_ON(uuid_is_null(id));
+	if (uuid_is_null(id)) {
+		ICAP_ERR(icap, "proc %d invalid UUID", pid);
+		return -EINVAL;
+	}
 
 	mutex_lock(&icap->icap_lock);
 
@@ -2134,17 +2142,20 @@ static ssize_t clock_freqs_show(struct device *dev,
 	struct icap *icap = platform_get_drvdata(to_platform_device(dev));
 	ssize_t cnt = 0;
 	int i;
-	u32 round_up_freq, freq_counter, freq;
+	u32 freq_counter, freq, request_in_khz, tolerance;
 
 	mutex_lock(&icap->icap_lock);
 	for (i = 0; i < ICAP_MAX_NUM_CLOCKS; i++) {
 		freq = icap_get_ocl_frequency(icap, i);
 		if(!uuid_is_null(&icap->icap_bitstream_uuid)){
 			freq_counter = icap_get_clock_frequency_counter_khz(icap, i);
-			round_up_freq = round_up(freq_counter, 1000)/1000;
-			if(round_up_freq!=freq)
-				ICAP_INFO(icap, "Frequency mismatch, Should be %u, Now is %u", freq, round_up_freq);
-			cnt += sprintf(buf + cnt, "%d\n", round_up_freq);
+
+			request_in_khz =freq*1000;
+			tolerance = freq*50;
+
+			if(abs(freq_counter-request_in_khz)>tolerance)
+				ICAP_INFO(icap, "Frequency mismatch, Should be %u khz, Now is %ukhz", request_in_khz, freq_counter);
+			cnt += sprintf(buf + cnt, "%d\n", DIV_ROUND_CLOSEST(freq_counter,1000));
 		}
 		else{
 			cnt += sprintf(buf + cnt, "%d\n", freq);
