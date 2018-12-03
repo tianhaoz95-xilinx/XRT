@@ -59,3 +59,12 @@ install (FILES
   ${XRT_XDP_APPDEBUG_DIR}/appdebugint.py
   DESTINATION ${APPDEBUG_INSTALL_PREFIX}
 )
+
+set (DEBUG_INSTALL_PREFIX "/opt/xilinx/xrt/share/debug")
+install (FILES
+  ${XRT_XDP_DEBUG_DIR}/cs_server.tcl
+  ${XRT_XDP_DEBUG_DIR}/cs_client.tcl
+  ${XRT_XDP_DEBUG_DIR}/cs_trigger.tcl
+  ${XRT_XDP_DEBUG_DIR}/cs_viewwave.tcl
+  DESTINATION ${DEBUG_INSTALL_PREFIX}
+)

@@ -112,6 +112,12 @@ public:
     return m_hal->getAlignment();
   }
 
+  DeviceInfo
+  getDeviceInfo()
+  {
+    return m_hal->getDeviceInfo();
+  }
+
   /**
    * @return
    *   List of clock frequency from device info

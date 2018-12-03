@@ -1318,7 +1318,7 @@ namespace XCL {
 
     writeDocumentFooter(ofs);
   }
-  
+
   // ******************
   // Unified CSV Writer
   // ******************

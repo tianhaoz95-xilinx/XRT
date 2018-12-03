@@ -43,13 +43,13 @@ namespace XCL {
     return gActive;
   }
 
-  RTSingleton* 
+  RTSingleton*
   RTSingleton::Instance() {
     if (gDead) {
       std::cout << "RTSingleton is dead\n";
       return nullptr;
     }
-    
+
     static RTSingleton singleton;
     return &singleton;
   }
@@ -73,17 +73,25 @@ namespace XCL {
       appdebug::register_xocl_appdebug_callbacks();
     }
 
+    if (xrt::config::get_ila_debug() != "off") {
+      XCL::register_xocl_debug_callbacks();
+    }
+
     if (applicationProfilingOn()) {
       XCL::register_xocl_profile_callbacks();
     }
+
 #ifdef PMD_OCL
     return;
 #endif
 
     gActive = true;
+
   };
 
   RTSingleton::~RTSingleton() {
+    cleanupLabtoolPool();
+
     gActive = false;
 
     endProfiling();
@@ -194,7 +202,7 @@ namespace XCL {
 
     while (ret == -1 && iter < max_iter) {
       ret = xdp::profile::platform::log_device_trace(Platform.get(),type, true);
-      if (ret == -1) 
+      if (ret == -1)
         std::this_thread::sleep_for(std::chrono::milliseconds(wait_msec));
       iter++;
     }
@@ -206,6 +214,11 @@ namespace XCL {
         deviceName, type);
     //XOCL_DEBUG(std::cout,"Profiling: type = "type," slots = ",numSlots,"\n");
     return numSlots;
+  }
+
+  DeviceInfo RTSingleton::getDeviceInfo(std::string& deviceName) {
+    DeviceInfo deviceInfo = xdp::profile::platform::get_device_info(Platform.get(), deviceName);
+    return deviceInfo;
   }
 
   void RTSingleton::getProfileSlotName(xclPerfMonType type, std::string& deviceName,
@@ -265,7 +278,85 @@ namespace XCL {
     else
       str = "System Run";
   }
+
+  void RTSingleton::configDeviceInfo(std::string& deviceName) {
+    auto device_info = getDeviceInfo(deviceName);
+    DeviceConfig config;
+    debug_ip_layout *map;
+    config.mgmt_instance = device_info.mDeviceMgmtInstance;
+    config.user_instance = device_info.mDeviceMgmtInstance - 1;
+    config.user_name = std::string(device_info.mDeviceUserName);
+    config.mgmt_name = std::string(device_info.mDeviceMgmtName);
+    config.device_name = deviceName;
+    config.debugIP[DEBUG_IP_TYPE::UNDEFINED] = {};
+    config.debugIP[DEBUG_IP_TYPE::LAPC] = {};
+    config.debugIP[DEBUG_IP_TYPE::ILA] = {};
+    config.debugIP[DEBUG_IP_TYPE::AXI_MM_MONITOR] = {};
+    config.debugIP[DEBUG_IP_TYPE::AXI_TRACE_FUNNEL] = {};
+    config.debugIP[DEBUG_IP_TYPE::AXI_MONITOR_FIFO_LITE] = {};
+    config.debugIP[DEBUG_IP_TYPE::AXI_MONITOR_FIFO_FULL] = {};
+    config.debugIP[DEBUG_IP_TYPE::ACCEL_MONITOR] = {};
+    config.debugIP[DEBUG_IP_TYPE::AXI_STREAM_MONITOR] = {};
+    std::string debug_ip_layout_path = "/sys/bus/pci/devices/" + config.user_name + "/debug_ip_layout";
+    std::ifstream debug_ip_layout_file(debug_ip_layout_path.c_str(), std::ifstream::binary);
+    char buffer[65536];
+    if( debug_ip_layout_file.good() ) {
+        debug_ip_layout_file.read(buffer, 65536);
+        if (debug_ip_layout_file.gcount() > 0) {
+            map = (debug_ip_layout*)(buffer);
+            for( unsigned int i = 0; i < map->m_count; i++ ) {
+              auto ip_type = (DEBUG_IP_TYPE)map->m_debug_ip_data[i].m_type;
+              if (config.debugIP.find(ip_type) == config.debugIP.end()) {
+                config.debugIP[ip_type] = {};
+              }
+              config.debugIP[ip_type].push_back(map->m_debug_ip_data[i]);
+            }
+        }
+        debug_ip_layout_file.close();
+    } else {
+      std::cout << "Cannot open debug_ip_layout, considered as no debug IP exist" << std::endl;
+    }
+    configDict[deviceName] = config;
+  }
+
+  DeviceConfig RTSingleton::getDeviceConfig(std::string& deviceName) {
+    if (configDict.find(deviceName) == configDict.end()) {
+      std::cout << "Device Config for " << deviceName << " not initialized" << std::endl;
+      return {};
+    }
+    return configDict[deviceName];
+  }
+
+  void RTSingleton::registerLabtool(LabtoolController* instance) {
+    labtoolPool[instance->getID()] = instance;
+  }
+
+  LabtoolController* RTSingleton::getLabtool(std::string& ID) {
+    auto target = labtoolPool.find(ID);
+    if (target == labtoolPool.end()) {
+      return NULL;
+    }
+    return target->second;
+  }
+
+  void RTSingleton::removeLabtool(std::string& ID) {
+    auto target = labtoolPool.find(ID);
+    if (target == labtoolPool.end()) {
+      return;
+    }
+    delete target->second;
+    labtoolPool.erase(target);
+  }
+
+  int RTSingleton::getLabtoolCount() {
+    return labtoolPool.size();
+  }
+
+  void RTSingleton::cleanupLabtoolPool() {
+    for (auto it = labtoolPool.begin(); it != labtoolPool.end(); ++it) {
+      it->second->cleanup();
+      delete it->second;
+    }
+    labtoolPool.clear();
+  }
 };
-
-
-

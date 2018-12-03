@@ -206,11 +206,15 @@ public:
     }
   }
 
+  virtual DeviceInfo
+  getDeviceInfo();
+
   virtual void
   acquire_cu_context(const uuid& uuid,size_t cuidx,bool shared);
 
   virtual void
   release_cu_context(const uuid& uuid,size_t cuidx);
+
 
   virtual task::queue*
   getQueue(hal::queue_type qt)

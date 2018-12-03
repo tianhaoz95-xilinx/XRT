@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-                startAddr = std::stoll(optarg, &idx, 0);
+            	startAddr = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex
@@ -378,7 +378,7 @@ int main(int argc, char *argv[])
             }
             size_t idx = 0;
             try {
-                sizeInBytes = std::stoll(optarg, &idx, 0);
+            	sizeInBytes = std::stoll(optarg, &idx, 0);
             }
             catch (const std::exception& ex) {
                 //out of range, invalid argument ex

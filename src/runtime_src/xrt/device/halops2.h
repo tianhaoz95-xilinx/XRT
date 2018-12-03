@@ -38,6 +38,7 @@ typedef xclDeviceInfo2        device_info;
 typedef xclPerfMonType        perfmon_type;
 typedef xclPerfMonEventType   perfmon_event_type;
 typedef xclPerfMonEventID     perfmon_event_id;
+typedef xclDeviceInfo2        device_info;
 
 class operations
 {

@@ -181,6 +181,9 @@ public:
   virtual unsigned int
   getBankCount() const = 0;
 
+  virtual DeviceInfo
+  getDeviceInfo() = 0;
+
   virtual size_t
   getDdrSize() const = 0;
 

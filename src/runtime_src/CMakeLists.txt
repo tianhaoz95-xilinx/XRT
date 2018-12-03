@@ -71,6 +71,7 @@ target_link_libraries(xilinxopencl
   crypt
   uuid
   rt
+  tcl
   )
 
 install (TARGETS xilinxopencl oclxdp LIBRARY DESTINATION ${XRT_INSTALL_DIR}/lib)

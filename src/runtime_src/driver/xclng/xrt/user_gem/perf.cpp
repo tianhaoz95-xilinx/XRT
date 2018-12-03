@@ -169,14 +169,20 @@ namespace xocl {
     else
       return 0;
   }
-  
+
   uint32_t XOCLShim::getPerfMonNumberSlots(xclPerfMonType type) {
-    if (type == XCL_PERF_MON_MEMORY)
+    if (type == XCL_PERF_MON_MEMORY) {
       return mMemoryProfilingNumberSlots;
-    if (type == XCL_PERF_MON_ACCEL)
+    }
+    if (type == XCL_PERF_MON_ACCEL) {
       return mAccelProfilingNumberSlots;
-    if (type == XCL_PERF_MON_STALL)
+    }
+    if (type == XCL_PERF_MON_STALL) {
       return mStallProfilingNumberSlots;
+    }
+    if (type == XCL_PERF_MON_ILA) {
+      return mILADebugNumberSlots;
+    }
     if (type == XCL_PERF_MON_HOST) {
       uint32_t count = 0;
       for (unsigned int i=0; i < mMemoryProfilingNumberSlots; i++) {
@@ -391,7 +397,7 @@ namespace xocl {
 
     for (uint32_t i=0; i < numSlots; i++) {
       baseAddress = getPerfMonBaseAddress(type,i);
-      
+
       // 1. Reset AXI - MM monitor metric counters
       size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, baseAddress + XSPM_CONTROL_OFFSET, &regValue, 4);
 
@@ -456,37 +462,37 @@ namespace xocl {
     uint64_t baseAddress;
     uint32_t sampleInterval;
     uint32_t numSlots = 0;
-    
+
     numSlots = getPerfMonNumberSlots(XCL_PERF_MON_MEMORY);
     for (uint32_t s=0; s < numSlots; s++) {
       baseAddress = getPerfMonBaseAddress(XCL_PERF_MON_MEMORY,s);
       // Read sample interval register
       // NOTE: this also latches the sampled metric counters
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                    baseAddress + XSPM_SAMPLE_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                    baseAddress + XSPM_SAMPLE_OFFSET,
                     &sampleInterval, 4);
-      // Need to do this for every xilmon  
+      // Need to do this for every xilmon
       if (s==0){
         counterResults.SampleIntervalUsec = sampleInterval / xclGetDeviceClockFreqMHz();
       }
 
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSPM_SAMPLE_WRITE_BYTES_OFFSET, 
-                      &counterResults.WriteBytes[s], 4); 
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSPM_SAMPLE_WRITE_TRANX_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSPM_SAMPLE_WRITE_BYTES_OFFSET,
+                      &counterResults.WriteBytes[s], 4);
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSPM_SAMPLE_WRITE_TRANX_OFFSET,
                       &counterResults.WriteTranx[s], 4);
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSPM_SAMPLE_WRITE_LATENCY_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSPM_SAMPLE_WRITE_LATENCY_OFFSET,
                       &counterResults.WriteLatency[s], 4);
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSPM_SAMPLE_READ_BYTES_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSPM_SAMPLE_READ_BYTES_OFFSET,
                       &counterResults.ReadBytes[s], 4);
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSPM_SAMPLE_READ_TRANX_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSPM_SAMPLE_READ_TRANX_OFFSET,
                       &counterResults.ReadTranx[s], 4);
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSPM_SAMPLE_READ_LATENCY_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSPM_SAMPLE_READ_LATENCY_OFFSET,
                       &counterResults.ReadLatency[s], 4);
 
       // Read upper 32 bits (if available)
@@ -547,8 +553,8 @@ namespace xocl {
     for (uint32_t s=0; s < numSlots; s++) {
       baseAddress = getPerfMonBaseAddress(XCL_PERF_MON_ACCEL,s);
       uint32_t version = 0;
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress,
                       &version, 4);
       if (mLogStream.is_open()) {
         mLogStream << "SAM Core Version : " << version << std::endl;
@@ -556,8 +562,8 @@ namespace xocl {
 
       // Read sample interval register
       // NOTE: this also latches the sampled metric counters
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSAM_SAMPLE_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSAM_SAMPLE_OFFSET,
                       &sampleInterval, 4);
       if (mLogStream.is_open()) {
         mLogStream << "SAM Sample Interval : " << sampleInterval << std::endl;
@@ -569,11 +575,11 @@ namespace xocl {
       size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
                       baseAddress + XSAM_ACCEL_EXECUTION_CYCLES_OFFSET, 
                       &counterResults.CuExecCycles[s], 4);
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSAM_ACCEL_MIN_EXECUTION_CYCLES_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSAM_ACCEL_MIN_EXECUTION_CYCLES_OFFSET,
                       &counterResults.CuMinExecCycles[s], 4);
-      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON, 
-                      baseAddress + XSAM_ACCEL_MAX_EXECUTION_CYCLES_OFFSET, 
+      size += xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+                      baseAddress + XSAM_ACCEL_MAX_EXECUTION_CYCLES_OFFSET,
                       &counterResults.CuMaxExecCycles[s], 4);
 
       // Read upper 32 bits (if available)
@@ -719,7 +725,7 @@ namespace xocl {
     for (uint32_t i=0; i < numSlots; i++) {
       baseAddress = getPerfMonBaseAddress(XCL_PERF_MON_ACCEL,i);
       // Set Stall trace control register bits
-      // Bit 1 : CU (Always ON)  Bit 2 : INT  Bit 3 : STR  Bit 4 : Ext 
+      // Bit 1 : CU (Always ON)  Bit 2 : INT  Bit 3 : STR  Bit 4 : Ext
       regValue = ((startTrigger & XSAM_TRACE_STALL_SELECT_MASK) >> 1) | 0x1 ;
       size += xclWrite(XCL_ADDR_SPACE_DEVICE_PERFMON, baseAddress + XSAM_TRACE_CTRL_OFFSET, &regValue, 4);
     }
@@ -735,7 +741,7 @@ namespace xocl {
       size += xclWrite(XCL_ADDR_SPACE_DEVICE_PERFMON, baseAddress, &regValue, 4);
       regValue = static_cast <uint32_t> (timeStamp >> 16 & 0xFFFF);
       size += xclWrite(XCL_ADDR_SPACE_DEVICE_PERFMON, baseAddress, &regValue, 4);
-      regValue = static_cast <uint32_t> (timeStamp >> 32 & 0xFFFF); 
+      regValue = static_cast <uint32_t> (timeStamp >> 32 & 0xFFFF);
       size += xclWrite(XCL_ADDR_SPACE_DEVICE_PERFMON, baseAddress, &regValue, 4);
       regValue = static_cast <uint32_t> (timeStamp >> 48 & 0xFFFF);
       size += xclWrite(XCL_ADDR_SPACE_DEVICE_PERFMON, baseAddress, &regValue, 4);
@@ -933,7 +939,7 @@ namespace xocl {
 
       // SDSoC Packet Format
       results.Timestamp = temp & 0x1FFFFFFFFFFF;
-      results.EventType = ((temp >> 45) & 0xF) ? XCL_PERF_MON_END_EVENT : 
+      results.EventType = ((temp >> 45) & 0xF) ? XCL_PERF_MON_END_EVENT :
           XCL_PERF_MON_START_EVENT;
       results.TraceID = (temp >> 49) & 0xFFF;
       results.Reserved = (temp >> 61) & 0x1;
@@ -1074,5 +1080,3 @@ void xclWriteHostEvent(xclDeviceHandle handle, xclPerfMonEventType type,
 {
   // don't do anything
 }
-
-

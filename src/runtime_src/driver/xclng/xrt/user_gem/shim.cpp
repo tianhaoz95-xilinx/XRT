@@ -146,6 +146,7 @@ xocl::XOCLShim::XOCLShim(unsigned index,
                                                         mMemoryProfilingNumberSlots(0),
                                                         mAccelProfilingNumberSlots(0),
                                                         mStallProfilingNumberSlots(0),
+                                                        mILADebugNumberSlots(0),
                                                         mStreamProfilingNumberSlots(0)
 {
     mLogfileName = nullptr;
@@ -639,6 +640,19 @@ void xocl::XOCLShim::xclSysfsGetDeviceInfo(xclDeviceInfo2 *info)
         dev->user->sysfs_get("mb_scheduler", "kds_numcdmas",
             errmsg, info->mNumCDMA);
     }
+
+    std::string user_name = dev->user->sysfs_name;
+    std::string mgmt_name = dev->mgmt->sysfs_name;
+    unsigned user_instance = dev->user->instance;
+    unsigned mgmt_instance = dev->mgmt->instance;
+    int user_func = dev->user->func;
+    int mgmt_func = dev->mgmt->func;
+    std::memcpy(info->mDeviceUserName, user_name.c_str(), user_name.size() + 1);
+    std::memcpy(info->mDeviceMgmtName, mgmt_name.c_str(), mgmt_name.size() + 1);
+    info->mDeviceUserInstance = user_instance;
+    info->mDeviceMgmtInstance = mgmt_instance;
+    info->mDeviceUserFunc = user_func;
+    info->mDeviceMgmtFunc = mgmt_func;
 }
 
 /*

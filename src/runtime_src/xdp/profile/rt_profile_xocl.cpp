@@ -192,13 +192,27 @@ get_profile_num_slots(key k, std::string& deviceName, xclPerfMonType type)
   auto platform = k;
   for (auto device : platform->get_device_range()) {
     std::string currDeviceName = device->get_unique_name();
-    if (currDeviceName.compare(deviceName) == 0)
+    if (currDeviceName.compare(deviceName) == 0) {
       return xdp::profile::device::getProfileNumSlots(device, type);
+    }
   }
 
   // If not found, return the timestamp of the first device
   auto device = platform->get_device_range()[0];
   return xdp::profile::device::getProfileNumSlots(device.get(), type);
+}
+
+DeviceInfo
+get_device_info(key k, std::string& deviceName)
+{
+  auto platform = k;
+  for (auto device : platform->get_device_range()) {
+    std::string currDeviceName = device->get_unique_name();
+    if (currDeviceName.compare(deviceName) == 0) {
+      return device->get_xrt_device()->getDeviceInfo();
+    }
+  }
+  return {};
 }
 
 cl_int
@@ -236,7 +250,7 @@ get_profile_slot_properties(key k, std::string& deviceName, xclPerfMonType type,
 cl_int
 get_profile_kernel_name(key k, const std::string& deviceName, const std::string& cuName, std::string& kernelName)
 {
-  auto platform = k;  
+  auto platform = k;
   for (auto device_id : platform->get_device_range()) {
     std::string currDeviceName = device_id->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0) {
@@ -262,7 +276,7 @@ write_host_event(key k, xclPerfMonEventType type, xclPerfMonEventID id)
   return 0;
 }
 
-size_t 
+size_t
 get_device_timestamp(key k, std::string& deviceName)
 {
   auto platform = k;
@@ -277,7 +291,7 @@ get_device_timestamp(key k, std::string& deviceName)
   return xdp::profile::device::getTimestamp(device.get());
 }
 
-double 
+double
 get_device_max_read(key k)
 {
   auto platform = k;
@@ -290,7 +304,7 @@ get_device_max_read(key k)
   return maxRead;
 }
 
-double 
+double
 get_device_max_write(key k)
 {
   auto platform = k;
@@ -303,7 +317,7 @@ get_device_max_write(key k)
   return maxWrite;
 }
 
-cl_int 
+cl_int
 start_device_trace(key k, xclPerfMonType type, size_t numComputeUnits)
 {
   auto platform = k;
@@ -318,7 +332,7 @@ start_device_trace(key k, xclPerfMonType type, size_t numComputeUnits)
   return ret;
 }
 
-cl_int 
+cl_int
 stop_device_trace(key k, xclPerfMonType type)
 {
   auto platform = k;
@@ -331,7 +345,7 @@ stop_device_trace(key k, xclPerfMonType type)
   return ret;
 }
 
-cl_int 
+cl_int
 log_device_trace(key k, xclPerfMonType type, bool forceRead)
 {
   auto platform = k;
@@ -369,7 +383,7 @@ log_device_trace(key k, xclPerfMonType type, bool forceRead)
   return ret;
 }
 
-cl_int 
+cl_int
 start_device_counters(key k, xclPerfMonType type)
 {
   auto platform = k;
@@ -384,7 +398,7 @@ start_device_counters(key k, xclPerfMonType type)
   return ret;
 }
 
-cl_int 
+cl_int
 stop_device_counters(key k, xclPerfMonType type)
 {
   auto platform = k;
@@ -397,7 +411,7 @@ stop_device_counters(key k, xclPerfMonType type)
   return ret;
 }
 
-cl_int 
+cl_int
 log_device_counters(key k, xclPerfMonType type, bool firstReadAfterProgram,
                     bool forceRead)
 {
@@ -425,14 +439,14 @@ get_ddr_bank_count(key k, const std::string& deviceName)
   return 1;
 }
 
-bool 
+bool
 isValidPerfMonTypeTrace(key k, xclPerfMonType type)
 {
   return ((XCL::RTSingleton::Instance()->deviceTraceProfilingOn() && (type == XCL_PERF_MON_MEMORY || type == XCL_PERF_MON_STR))
           || (XCL::RTSingleton::Instance()->deviceOclProfilingOn() && type == XCL_PERF_MON_ACCEL));
 }
 
-bool 
+bool
 isValidPerfMonTypeCounters(key k, xclPerfMonType type)
 {
   return ((XCL::RTSingleton::Instance()->deviceCountersProfilingOn() && (type == XCL_PERF_MON_MEMORY || type == XCL_PERF_MON_STR))
@@ -460,7 +474,7 @@ init(key k)
   for (int i=0; i < XCL_PERF_MON_TOTAL_PROFILE; ++i)
     data->mLastTraceTrainingTime[i] = nowTime;
 }
-  
+
 cl_int
 setProfileNumSlots(key k, xclPerfMonType type, unsigned numSlots)
 {
@@ -550,7 +564,7 @@ startTrace(key k, xclPerfMonType type, size_t numComputeUnits)
   return CL_SUCCESS;
 }
 
-cl_int 
+cl_int
 stopTrace(key k, xclPerfMonType type)
 {
   auto device = k;
@@ -558,28 +572,28 @@ stopTrace(key k, xclPerfMonType type)
   return CL_SUCCESS;
 }
 
-size_t 
+size_t
 getTimestamp(key k)
 {
   auto device = k;
   return device->get_xrt_device()->getDeviceTime().get();
 }
 
-double 
+double
 getMaxRead(key k)
 {
   auto device = k;
   return device->get_xrt_device()->getDeviceMaxRead().get();
 }
 
-double 
+double
 getMaxWrite(key k)
 {
   auto device = k;
   return device->get_xrt_device()->getDeviceMaxWrite().get();
 }
 
-cl_int 
+cl_int
 startCounters(key k, xclPerfMonType type)
 {
   auto data = get_data(k);
@@ -599,7 +613,7 @@ startCounters(key k, xclPerfMonType type)
   return CL_SUCCESS;
 }
 
-cl_int 
+cl_int
 stopCounters(key k, xclPerfMonType type)
 {
   auto device = k;
@@ -607,7 +621,7 @@ stopCounters(key k, xclPerfMonType type)
   return CL_SUCCESS;
 }
 
-cl_int 
+cl_int
 logTrace(key k, xclPerfMonType type, bool forceRead)
 {
   auto data = get_data(k);
@@ -666,7 +680,7 @@ logTrace(key k, xclPerfMonType type, bool forceRead)
   return CL_SUCCESS;
 }
 
-cl_int 
+cl_int
 logCounters(key k, xclPerfMonType type, bool firstReadAfterProgram, bool forceRead)
 {
   auto data = get_data(k);
@@ -677,7 +691,7 @@ logCounters(key k, xclPerfMonType type, bool firstReadAfterProgram, bool forceRe
   //  return CL_SUCCESS;
 
   std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
-  
+
   if (forceRead || ((nowTime - data->mLastCountersSampleTime) > std::chrono::milliseconds(data->mSampleIntervalMsec))) {
     //warning : reading from the accelerator device only
     //read the device profile
@@ -685,7 +699,7 @@ logCounters(key k, xclPerfMonType type, bool firstReadAfterProgram, bool forceRe
     struct timespec now;
     int err = clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t timeNsec = (err < 0) ? 0 : (uint64_t) now.tv_sec * 1000000000UL + (uint64_t) now.tv_nsec;
-    
+
     // Create unique name for device since currently all devices are called fpga0
     std::string device_name = device->get_unique_name();
     std::string binary_name = device->get_xclbin().project_name();
@@ -711,8 +725,8 @@ debugReadIPStatus(key k, xclDebugReadType type, void* aDebugResults)
 }
 
 data*
-get_data(key k) 
-{ 
+get_data(key k)
+{
   auto mgr = XCL::RTSingleton::Instance()->getProfileManager();
   auto& device_data = mgr->device_data;
   auto itr = device_data.find(k);
@@ -726,5 +740,3 @@ get_data(key k)
 
 } // device
 } // profile,xdp
-
-

@@ -98,6 +98,15 @@ setup()
 #endif
 }
 
+DeviceInfo
+device::
+getDeviceInfo() {
+  hal2::device_info* info = new hal2::device_info();
+  m_ops->mGetDeviceInfo(m_handle, info);
+  DeviceInfo res_info = *(reinterpret_cast<DeviceInfo*>(info));
+  return res_info;
+}
+
 device::BufferObject*
 device::
 getBufferObject(const BufferObjectHandle& boh) const

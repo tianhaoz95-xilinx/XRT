@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <ctime>
 #include <cassert>
+#include <stdlib.h>
 
 // Uncomment to use device-based timestamps in timeline trace
 //#define USE_DEVICE_TIMELINE
@@ -1782,6 +1783,7 @@ else if (functionName.find("clEnqueueMigrateMemObjects") != std::string::npos)
       traceString = std::string();
     }
   }
+
 }
 
 

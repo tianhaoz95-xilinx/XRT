@@ -72,6 +72,9 @@ set_profile_num_slots(key k, xclPerfMonType type, unsigned numSlots);
 unsigned
 get_profile_num_slots(key k, std::string& deviceName, xclPerfMonType type);
 
+DeviceInfo
+get_device_info(key k, std::string& deviceName);
+
 cl_int
 get_profile_slot_name(key k, std::string& deviceName, xclPerfMonType type,
 		              unsigned slotnum, std::string& slotName);
@@ -86,31 +89,31 @@ get_profile_kernel_name(key k, const std::string& deviceName, const std::string&
 cl_int
 write_host_event(key k, xclPerfMonEventType type, xclPerfMonEventID id);
 
-size_t 
+size_t
 get_device_timestamp(key k, std::string& deviceName);
 
-double 
+double
 get_device_max_read(key k);
 
-double 
+double
 get_device_max_write(key k);
 
-cl_int 
+cl_int
 start_device_trace(key k, xclPerfMonType type, size_t numComputeUnits);
 
-cl_int 
+cl_int
 stop_device_trace(key k, xclPerfMonType type);
 
-cl_int 
+cl_int
 log_device_trace(key k, xclPerfMonType type, bool forceRead);
 
-cl_int 
+cl_int
 start_device_counters(key k, xclPerfMonType type);
 
-cl_int 
+cl_int
 stop_device_counters(key k, xclPerfMonType type);
 
-cl_int 
+cl_int
 log_device_counters(key k, xclPerfMonType type, bool firstReadAfterProgram,
                     bool forceRead);
 
@@ -120,10 +123,10 @@ debugReadIPStatus(key k, xclDebugReadType type, void* aDebugResults);
 unsigned int
 get_ddr_bank_count(key k, const std::string& deviceName);
 
-bool 
+bool
 isValidPerfMonTypeTrace(key k, xclPerfMonType type);
 
-bool 
+bool
 isValidPerfMonTypeCounters(key k, xclPerfMonType type);
 
 
@@ -169,28 +172,28 @@ writeHostEvent(key k, xclPerfMonEventType type, xclPerfMonEventID id);
 cl_int
 startTrace(key k, xclPerfMonType type, size_t numComputeUnits);
 
-cl_int 
+cl_int
 stopTrace(key k, xclPerfMonType type);
 
-size_t 
+size_t
 getTimestamp(key k);
 
-double 
+double
 getMaxRead(key k);
 
-double 
+double
 getMaxWrite(key k);
 
-cl_int 
+cl_int
 startCounters(key k, xclPerfMonType type);
 
-cl_int 
+cl_int
 stopCounters(key k, xclPerfMonType type);
 
-cl_int 
+cl_int
 logTrace(key k, xclPerfMonType type, bool forceRead);
 
-cl_int 
+cl_int
 logCounters(key k, xclPerfMonType type, bool firstReadAfterProgram, bool forceRead);
 
 cl_int
@@ -199,5 +202,3 @@ debugReadIPStatus(key k, xclDebugReadType type, void*  aDebugResults);
 }} // profile,xdp
 
 #endif
-
-
