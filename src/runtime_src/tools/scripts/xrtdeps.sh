@@ -82,6 +82,7 @@ RH_LIST=(\
      rpm-build \
      strace \
      unzip \
+     tcl-dev \
 )
 
 UB_LIST=(\
@@ -126,6 +127,7 @@ UB_LIST=(\
      strace \
      unzip \
      uuid-dev \
+     tcl-dev \
 )
 
 if [[ $docker == 0 ]]; then
