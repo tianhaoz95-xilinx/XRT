@@ -25,7 +25,12 @@
 // We may need to c++ify the code that currently is using Tcl in this file.
 // This causes inclusion of -ltcl in the makefiles, which could be a problem when
 // we start supporting windows. Also check this on Ubuntu...
-#include <tcl8.6/tcl.h>
+#include <tcl8.6/tcl.h> // this is the location of tcl-dev on Ubuntu 16.04
+
+// on CentOS it should be the following. However, there is no precompile directive
+// to differentiate Ubuntu and CentOS
+// #include <tcl8.6/tcl.h>
+
 //~~~~~~~~~~~~~~
 
 // TODO: Change couts to a message manager output conditional on some verbosity param
