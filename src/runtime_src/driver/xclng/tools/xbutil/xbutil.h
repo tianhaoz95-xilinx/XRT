@@ -96,12 +96,6 @@ enum statusmask {
     STATUS_SSPM_MASK = 0x4
 };
 
-enum powermask {
-	POWER_NONE_MASK = 0x0,
-	POWER_ONCE_MASK = 0x1,
-	POWER_TRACE_MASK = 0x2
-};
-
 static const std::pair<std::string, command> map_pairs[] = {
     std::make_pair("flash", FLASH),
     std::make_pair("program", PROGRAM),

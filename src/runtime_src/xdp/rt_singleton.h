@@ -21,7 +21,6 @@
 #include <CL/opencl.h>
 #include <string>
 #include <map>
-#include <unordered_map>
 #include "xdp/profile/rt_profile.h"
 #include "xdp/debug/rt_debug.h"
 #include "driver/include/xclperf.h"
@@ -52,7 +51,7 @@ namespace XCL {
     std::string mgmt_name;
     unsigned mgmt_instance;
     unsigned user_instance;
-    std::unordered_map<DEBUG_IP_TYPE, std::vector<debug_ip_data>> debugIP;
+    std::map<DEBUG_IP_TYPE, std::vector<debug_ip_data>> debugIP;
   };
 
   class RTSingleton {
@@ -172,8 +171,8 @@ namespace XCL {
     bool IsObjectsReleased = false;
     int ProfileFlags;
     std::map<unsigned, e_ocl_profile_mode> OclProfileMode;
-    std::unordered_map<std::string, LabtoolController*> labtoolPool;
-    std::unordered_map<std::string, DeviceConfig> configDict;
+    std::map<std::string, LabtoolController*> labtoolPool;
+    std::map<std::string, DeviceConfig> configDict;
   };
 };
 

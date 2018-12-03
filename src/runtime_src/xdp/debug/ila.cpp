@@ -25,7 +25,7 @@
 // We may need to c++ify the code that currently is using Tcl in this file.
 // This causes inclusion of -ltcl in the makefiles, which could be a problem when
 // we start supporting windows. Also check this on Ubuntu...
-#include <tcl.h>
+#include <tcl8.6/tcl.h>
 //~~~~~~~~~~~~~~
 
 // TODO: Change couts to a message manager output conditional on some verbosity param
@@ -269,7 +269,10 @@ namespace XCL
 
           if (m_dir != "") {
             // new working directory
-            chdir(m_dir.c_str());
+            if(chdir(m_dir.c_str())) {
+              std::cout << "Cannot swith dir, return" << std::endl;
+              return;
+            }
           }
 
           // Stdout/Stderr log file - we log results from the child to a file
