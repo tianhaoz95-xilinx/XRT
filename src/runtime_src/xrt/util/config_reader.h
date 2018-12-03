@@ -313,6 +313,13 @@ get_ert_slotsize()
   return value;
 }
 
+inline bool
+get_cdma()
+{
+  static unsigned int value = detail::get_bool_value("Runtime.cdma",false);
+  return value;
+}
+
 inline std::string
 get_hw_em_driver()
 {
