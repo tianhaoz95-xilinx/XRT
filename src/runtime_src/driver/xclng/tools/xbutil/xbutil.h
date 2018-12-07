@@ -83,6 +83,7 @@ enum subcommand {
     STATUS_SPM,
     STATUS_LAPC,
     STATUS_SSPM,
+    STATUS_SAM,
     STREAM,
     STATUS_UNSUPPORTED,
     MEM_QUERY_ECC,
@@ -92,7 +93,8 @@ enum statusmask {
     STATUS_NONE_MASK = 0x0,
     STATUS_SPM_MASK = 0x1,
     STATUS_LAPC_MASK = 0x2,
-    STATUS_SSPM_MASK = 0x4
+    STATUS_SSPM_MASK = 0x4,
+    STATUS_SAM_MASK = 0x8
 };
 
 static const std::pair<std::string, command> map_pairs[] = {
@@ -121,6 +123,7 @@ static const std::pair<std::string, subcommand> subcmd_pairs[] = {
     std::make_pair("spm", STATUS_SPM),
     std::make_pair("lapc", STATUS_LAPC),
     std::make_pair("sspm", STATUS_SSPM),
+    std::make_pair("sam", STATUS_SAM),
     std::make_pair("stream", STREAM),
     std::make_pair("query-ecc", MEM_QUERY_ECC),
     std::make_pair("reset-ecc", MEM_RESET_ECC)
@@ -1150,6 +1153,7 @@ public:
                              std::vector< std::pair<std::string, std::string> >& aCUNamePortNames);
     int readSPMCounters();
     int readSSPMCounters();
+    int readSAMCounters();
     int readLAPCheckers(int aVerbose);
     int print_debug_ip_list (int aVerbose);
 

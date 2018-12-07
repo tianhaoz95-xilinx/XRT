@@ -186,6 +186,51 @@ int xcldev::device::readSSPMCounters() {
     return 0;
 }
 
+int xcldev::device::readSAMCounters() {
+    xclAccelMonitorCounterResults samResults = {0};
+    std::vector<std::string> slotNames;
+    std::vector< std::pair<std::string, std::string> > cuNameportNames;
+    unsigned int numSlots = getIPCountAddrNames (ACCEL_MONITOR, nullptr, &slotNames);
+    if (numSlots == 0) {
+        std::cout << "ERROR: SSPM IP does not exist on the platform" << std::endl;
+        return 0;
+    }
+    xclDebugReadIPStatus(m_handle, XCL_DEBUG_READ_TYPE_SAM, &samResults);
+
+    std::cout << "SDx Accel Monitor Counters\n";
+    int col = 11;
+    std::for_each(slotNames.begin(), slotNames.end(), [&](std::string& slotName){
+        col = std::max(col, (int)slotName.length() + 4);
+    });
+
+    std::cout << std::left
+            <<         std::setw(col) << "CU Name"
+            << "  " << std::setw(16) << "Exec Count" 
+            << "  " << std::setw(16) << "Exec Cycles" 
+            << "  " << std::setw(16) << "Ext Stall Cycles"
+            << "  " << std::setw(16) << "Int Stall Cycles"
+            << "  " << std::setw(16) << "Str Stall Cycles"
+            << "  " << std::setw(16) << "Min Exec Cycles"
+            << "  " << std::setw(16) << "Max Exec Cycles"
+            << "  " << std::setw(16) << "Start Count"
+            << std::endl;
+    for (size_t i = 0; i < samResults.NumSlots; ++i) {
+        unsigned long long minCycle = (samResults.CuMinExecCycles[i] == 0xFFFFFFFFFFFFFFFF) ? 0 : samResults.CuMinExecCycles[i];
+        std::cout << std::left
+            <<         std::setw(col) << slotNames[i]
+            << "  " << std::setw(16) << samResults.CuExecCount[i]
+            << "  " << std::setw(16) << samResults.CuExecCycles[i]
+            << "  " << std::setw(16) << samResults.CuStallExtCycles[i]
+            << "  " << std::setw(16) << samResults.CuStallIntCycles[i]
+            << "  " << std::setw(16) << samResults.CuStallStrCycles[i]
+            << "  " << std::setw(16) << minCycle
+            << "  " << std::setw(16) << samResults.CuMaxExecCycles[i]
+            << "  " << std::setw(16) << samResults.CuStartCount[i]
+            << std::endl;
+    }
+    return 0;
+}
+
 int xcldev::device::readLAPCheckers(int aVerbose) {
     xclDebugCheckersResults debugResults = {0};
     //if (getuid() && geteuid()) {
