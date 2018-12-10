@@ -347,20 +347,31 @@ action_migrate(cl_uint num_mem_objects, const cl_mem *mem_objects, cl_mem_migrat
   // profile action is invoked after the event is marked complete and
   // at that time the buffer may have been released by a subsequent
   // clReleaseMemObject
-  cl_mem mem0 = (num_mem_objects > 0) ? mem_objects[0] : nullptr;
-
-  std::string bank;
-  uint64_t address;
-  get_address_bank(mem0, address, bank);
-
-  size_t totalSize = 0;
+  std::vector<cl_mem> mems;
+  std::vector<std::string> banks;
+  std::vector<uint64_t> addresses;
+  std::vector<size_t> sizes;
+  size_t ops_count = num_mem_objects;
   for (auto mem : xocl::get_range(mem_objects,mem_objects+num_mem_objects)) {
-    totalSize += xocl::xocl(mem)->get_size();
+    uint64_t address;
+    std::string bank;
+    size_t size;
+    get_address_bank(mem, address, bank);
+    size = xocl::xocl(mem)->get_size();
+    mems.push_back(mem);
+    banks.push_back(bank);
+    sizes.push_back(size);
+    addresses.push_back(address);
   }
 
-  return [mem0,totalSize,address,bank,flags](xocl::event* event,cl_int status,const std::string&) {
-    if (cb_action_migrate)
-      cb_action_migrate(event, status, mem0, totalSize, address, bank, flags);
+  return [mems, banks, ops_count, sizes, addresses,flags](xocl::event* event,cl_int status,const std::string&) {
+    if (cb_action_migrate) {
+      std::cout << "calling migrate callback with flag " << (unsigned)status << std::endl;
+      for (size_t i = 0; i < ops_count; ++i) {
+        std::cout << "mem migration: bank => " << banks[i] << ", size => " << sizes[i] << ", address => 0x" << std::hex << addresses[i] << std::dec << std::endl;
+        cb_action_migrate(event, status, mems[i], sizes[i], addresses[i], banks[i], flags, i);
+      }
+    }
   };
 }
 

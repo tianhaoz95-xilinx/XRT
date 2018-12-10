@@ -418,7 +418,7 @@ cb_action_ndrange_migrate (xocl::event* event,cl_int status, cl_mem mem0, size_t
 }
 
 void cb_action_migrate (xocl::event* event,cl_int status, cl_mem mem0, size_t totalSize, uint64_t address,
-                                                  const std::string & bank, cl_mem_migration_flags flags)
+                                                  const std::string & bank, cl_mem_migration_flags flags, size_t index)
 {
     if (!isProfilingOn() || (flags & CL_MIGRATE_MEM_OBJECT_CONTENT_UNDEFINED) || (totalSize == 0))
       return;

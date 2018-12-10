@@ -54,7 +54,7 @@ using cb_action_unmap_type = std::function<void (xocl::event* event,cl_int statu
 using cb_action_ndrange_migrate_type = std::function <void (xocl::event* event,cl_int status, cl_mem mem0,
                                                       size_t totalSize, uint64_t address, const std::string & bank)>;
 using cb_action_migrate_type = std::function< void (xocl::event* event,cl_int status, cl_mem mem0, size_t totalSize, uint64_t address,
-                                                    const std::string & bank, cl_mem_migration_flags flags)>;
+                                                    const std::string & bank, cl_mem_migration_flags flags, size_t index)>;
 
 /*
  * callback function types for function logging, dependency ...
