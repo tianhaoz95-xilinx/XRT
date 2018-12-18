@@ -56,6 +56,8 @@ For Python 2.x, use `pip install xrt`
 
 For Python 3.x, use `pip3 install xrt`
 
+`pip install git+https://github.com/tianhaoz95-xilinx/XRT@project/python-xrt#subdirectory=contrib/python-xrt`
+
 #### Install using Linux Distribution (working in progress)
 
 For Ubuntu, use `sudo apt install python-xrt`
