@@ -1,0 +1,8 @@
+*.pyc
+*.log
+*.xclbin
+.DS_Store
+build
+dist
+xrt.egg-info
+__pycache__
