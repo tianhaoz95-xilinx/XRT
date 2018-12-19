@@ -132,6 +132,8 @@ enum {
 #define	XOCL_MIG		"mig" SUBDEV_SUFFIX
 #define	XOCL_XMC		"xmc" SUBDEV_SUFFIX
 #define	XOCL_DNA		"dna" SUBDEV_SUFFIX
+#define	XOCL_NIFD		"nifd" SUBDEV_SUFFIX
+
 enum subdev_id {
 	XOCL_SUBDEV_FEATURE_ROM,
 	XOCL_SUBDEV_MM_DMA,
@@ -148,7 +150,8 @@ enum subdev_id {
 	XOCL_SUBDEV_STR_DMA,
 	XOCL_SUBDEV_XMC,
 	XOCL_SUBDEV_DNA,
-	XOCL_SUBDEV_NUM
+	XOCL_SUBDEV_NUM,
+	XOCL_SUBDEV_NIFD,
 };
 
 #define	XOCL_RES_FEATURE_ROM				\
@@ -801,6 +804,7 @@ enum subdev_id {
 			XOCL_DEVINFO_XVC_PRI,				\
 			XOCL_DEVINFO_MAILBOX_MGMT,			\
 			XOCL_DEVINFO_ICAP_MGMT,				\
+			XOCL_DEVINFO_NIFD_MGMT,				\
 		})
 
 #define	XOCL_BOARD_MGMT_6A8F_DSA52					\
@@ -892,6 +896,23 @@ enum subdev_id {
 		.board_name = board,					\
 		.flash_type = FLASH_TYPE_SPI,				\
 	}
+
+#define XOCL_RES_NIFD_MGMT                         \
+        ((struct resource []) {                    \
+                {                                  \
+                        .start = 0x0,          \
+                        .end = 0x0,            \
+                        .flags = IORESOURCE_MEM,   \
+                },                                 \
+         })
+
+#define XOCL_DEVINFO_NIFD_MGMT                   \
+       {                                         \
+                XOCL_SUBDEV_NIFD,                \
+                XOCL_NIFD,                       \
+                XOCL_RES_NIFD_MGMT,              \
+                ARRAY_SIZE(XOCL_RES_NIFD_MGMT),  \
+       }
 
 #define	XOCL_MGMT_PCI_IDS						\
 	{ XOCL_PCI_DEVID(0x10EE, 0x4A47, PCI_ANY_ID, MGMT_DEFAULT) },	\
