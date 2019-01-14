@@ -313,7 +313,7 @@ static void add_readback_data(unsigned int frame, unsigned int offset)
     offset &= 0x3fffffff; // Set the top two bits to 0 first
     offset |= 0x80000000; // Top two bits of offsets must be 10
 
-    //printk("Frame: %x Offset: %x\n", frame, offset);
+    //printk("NIFD: Frame: %x Offset: %x\n", frame, offset);
 
     write_nifd_register(frame, NIFD_CONFIG_DATA_M2);
     write_nifd_register(offset, NIFD_CONFIG_DATA_M2);
@@ -646,7 +646,7 @@ static long readback_variable_core(unsigned int *arg)
 
     restart_controlled_clock(clock_status);
 
-    //printk("Final status: %x\n", read_nifd_status());
+    //printk("NIFD: Final status: %x\n", read_nifd_status());
     return 0; // Success
 }
 
@@ -703,30 +703,30 @@ static int nifd_probe(struct platform_device *pdev)
     struct xocl_dev_core *core;
     int err;
 
-    printk("nifd structs constructed");
+    printk("NIFD: nifd structs constructed");
 
     //xocl_info(&pdev->dev, "Starting NIFD probe\n") ;
 
-    printk("allocating vm");
+    printk("NIFD: allocating vm");
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
-    printk("vm allocated");
+    printk("NIFD: vm allocated");
 
     if (!nifd)
         return -ENOMEM;
     nifd_global = nifd;
 
     // Map io memory to what was specified in the declaration
-    printk("getting platform resource");
+    printk("NIFD: getting platform resource");
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-    printk("platform resource got");
+    printk("NIFD: platform resource got");
 
-    printk("start ioremap_nocache");
+    printk("NIFD: start ioremap_nocache");
     nifd->base_nifd = ioremap_nocache(res->start, res->end - res->start + 1);
-    printk("ioremap_nocache return");
+    printk("NIFD: ioremap_nocache return");
 
     if (!nifd->base_nifd)
     {
-        printk("ioremap_nocache err");
+        printk("NIFD: ioremap_nocache err");
         xocl_err(&pdev->dev, "Map iomem failed");
         return -EIO;
     }
@@ -734,9 +734,9 @@ static int nifd_probe(struct platform_device *pdev)
     // Base ICAP should map to 0x2c000
 
     // 5.2 DSA address
-    printk("get base_icap");
+    printk("NIFD: get base_icap");
     nifd->base_icap = nifd->base_nifd + 0x4000;
-    printk("get base_icap return");
+    printk("NIFD: get base_icap return");
 
     // The location of the ICAP primitive on 5.2 is at 0x20000
     //nifd->base_icap_primitive = ioremap_nocache(0x20000, 0x20119) ;
@@ -746,25 +746,25 @@ static int nifd_probe(struct platform_device *pdev)
     // This appears to be failing...
     //}
 
-    printk("start xocl_get_xdev");
+    printk("NIFD: start xocl_get_xdev");
     core = xocl_get_xdev(pdev);
-    printk("xocl_get_xdev return");
+    printk("NIFD: xocl_get_xdev return");
 
     // Create the character device to access the ioctls
-    printk("cdev_init start");
+    printk("NIFD: cdev_init start");
     cdev_init(&nifd->sys_cdev, &nifd_fops);
-    printk("cdev_init return");
+    printk("NIFD: cdev_init return");
 
-    printk("sys_cdev start");
+    printk("NIFD: sys_cdev start");
     nifd->sys_cdev.owner = THIS_MODULE;
     nifd->instance =
         XOCL_DEV_ID(core->pdev) | platform_get_device_id(pdev)->driver_data;
     nifd->sys_cdev.dev = MKDEV(MAJOR(nifd_dev), nifd->instance);
-    printk("sys_cdev return");
+    printk("NIFD: sys_cdev return");
 
-    printk("cdev_add start");
+    printk("NIFD: cdev_add start");
     err = cdev_add(&nifd->sys_cdev, nifd->sys_cdev.dev, 1);
-    printk("cdev_add return");
+    printk("NIFD: cdev_add return");
 
     if (err)
     {
@@ -773,14 +773,14 @@ static int nifd_probe(struct platform_device *pdev)
     }
 
     // Now create the system device to create the file
-    printk("device_create start");
+    printk("NIFD: device_create start");
     nifd->sys_device = device_create(nifd_class,
                                      &pdev->dev,
                                      nifd->sys_cdev.dev,
                                      NULL,
                                      "%s",
                                      platform_get_device_id(pdev)->name);
-    printk("device_create return");
+    printk("NIFD: device_create return");
 
     if (IS_ERR(nifd->sys_device))
     {
@@ -789,9 +789,9 @@ static int nifd_probe(struct platform_device *pdev)
         return err;
     }
 
-    printk("platform_set_drvdata start");
+    printk("NIFD: platform_set_drvdata start");
     platform_set_drvdata(pdev, nifd);
-    printk("platform_set_drvdata return");
+    printk("NIFD: platform_set_drvdata return");
 
     return 0; // Success
 }
@@ -824,7 +824,7 @@ static int nifd_remove(struct platform_device *pdev)
 int __init xocl_init_nifd(void)
 {
     int err = 0;
-    printk("init nifd");
+    printk("NIFD: init nifd");
 
     err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
     if (err < 0)
