@@ -900,8 +900,8 @@ enum subdev_id {
 #define XOCL_RES_NIFD_MGMT                         \
         ((struct resource []) {                    \
                 {                                  \
-                        .start = 0x0,          \
-                        .end = 0x0,            \
+                        .start = 0x28000,          \
+                        .end = 0x2cfff,            \
                         .flags = IORESOURCE_MEM,   \
                 },                                 \
          })
