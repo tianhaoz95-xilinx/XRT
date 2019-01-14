@@ -825,6 +825,7 @@ enum subdev_id {
 			XOCL_DEVINFO_XVC_PRI,				\
 			XOCL_DEVINFO_MAILBOX_MGMT,			\
 			XOCL_DEVINFO_ICAP_MGMT,				\
+			XOCL_DEVINFO_NIFD_MGMT,				\
 		})
 
 #define	XOCL_BOARD_MGMT_XBB_DSA52					\
