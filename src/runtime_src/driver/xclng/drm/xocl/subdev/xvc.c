@@ -341,6 +341,8 @@ static int xvc_probe(struct platform_device *pdev)
 	struct xocl_dev_core *core;
 	int err;
 
+	printk("XVC: probe called");
+
 	xvc = devm_kzalloc(&pdev->dev, sizeof(*xvc), GFP_KERNEL);
 	if (!xvc)
 		return -ENOMEM;
@@ -437,6 +439,7 @@ int __init xocl_init_xvc(void)
 	if (err < 0)
 		goto err_register_chrdev;
 
+	printk("XVC: platform_driver_register");
 	err = platform_driver_register(&xvc_driver);
 	if (err) {
 		goto err_driver_reg;
