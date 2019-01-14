@@ -824,6 +824,7 @@ static int nifd_remove(struct platform_device *pdev)
 int __init xocl_init_nifd(void)
 {
     int err = 0;
+    printk("init nifd");
 
     err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
     if (err < 0)
