@@ -746,7 +746,7 @@ static int nifd_probe(struct platform_device *pdev)
 
     printk("start xocl_get_xdev");
     core = xocl_get_xdev(pdev);
-    printk("xocl_get_xdev return")
+    printk("xocl_get_xdev return");
 
     // Create the character device to access the ioctls
     printk("cdev_init start");
