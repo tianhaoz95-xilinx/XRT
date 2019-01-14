@@ -99,6 +99,8 @@ static int nifd_ip_version(void);
 #define SUPPORTED_NIFD_IP_VERSION 1
 #define SUPPORTED_DRIVER_VERSION 1
 
+#define	MINOR_NAME_MASK		0xffffffff
+
 // Low level functions to talk to NIFD and the ICAP
 static void write_nifd_register(unsigned int value,
                                 enum NIFD_register_offset reg_offset);
@@ -778,7 +780,7 @@ static int nifd_probe(struct platform_device *pdev)
                                      NULL,
                                      "%s%d",
                                      platform_get_device_id(pdev)->name,
-                                     nifd->instance);
+                                     nifd->instance & MINOR_NAME_MASK);
     printk("device_create return");
 
     if (IS_ERR(nifd->sys_device))
