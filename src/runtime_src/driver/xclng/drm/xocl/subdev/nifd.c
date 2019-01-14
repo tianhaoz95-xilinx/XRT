@@ -826,25 +826,41 @@ int __init xocl_init_nifd(void)
     int err = 0;
     printk("NIFD: init nifd");
 
+    printk("NIFD: alloc_chrdev_region start");
     err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
+    printk("NIFD: alloc_chrdev_region return");
+
     if (err < 0)
     {
+        printk("NIFD: alloc_chrdev_region err");
         return err;
     }
+    
+    printk("NIFD: class_create start");
     nifd_class = class_create(THIS_MODULE, XOCL_NIFD);
+    printk("NIFD: class_create return");
+
     if (IS_ERR(nifd_class))
     {
+        printk("NIFD: class_create err");
         err = PTR_ERR(nifd_class);
         unregister_chrdev_region(nifd_dev, 1);
         return err;
     }
+
+    printk("NIFD: platform_driver_register start");
     err = platform_driver_register(&nifd_driver);
+    printk("NIFD: platform_driver_register return");
+
     if (err)
     {
+        printk("NIFD: platform_driver_register err");
         class_destroy(nifd_class);
         unregister_chrdev_region(nifd_dev, 1);
         return err;
     }
+
+    printk("NIFD: all done");
     return 0; // Success
 }
 
