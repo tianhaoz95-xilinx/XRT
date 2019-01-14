@@ -778,9 +778,8 @@ static int nifd_probe(struct platform_device *pdev)
                                      &pdev->dev,
                                      nifd->sys_cdev.dev,
                                      NULL,
-                                     "%s%d",
-                                     platform_get_device_id(pdev)->name,
-                                     nifd->instance & MINOR_NAME_MASK);
+                                     "%s",
+                                     platform_get_device_id(pdev)->name);
     printk("device_create return");
 
     if (IS_ERR(nifd->sys_device))
