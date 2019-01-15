@@ -814,6 +814,11 @@ static int nifd_remove(struct platform_device *pdev)
         printk("NIFD: nifd_class is NULL");
         return -EINVAL;
     }
+
+    if (!nifd->sys_cdev.dev) {
+        printk("NIFD: sys_cdev.dev is NULL");
+        return -EINVAL;
+    }
         
     printk("NIFD: device_destroy start");
     device_destroy(nifd_class, nifd->sys_cdev.dev);
