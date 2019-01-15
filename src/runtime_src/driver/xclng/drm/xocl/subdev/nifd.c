@@ -801,20 +801,39 @@ static int nifd_remove(struct platform_device *pdev)
 {
     struct xocl_nifd *nifd;
 
+    printk("NIFD: remove platform_get_drvdata start");
     nifd = platform_get_drvdata(pdev);
-    if (!nifd)
+    printk("NIFD: platform_get_drvdata return");
+
+    if (!nifd) {
+        printk("NIFD: platform_get_drvdata err");
         return -EINVAL;
-
+    }
+        
+    printk("NIFD: device_destroy start");
     device_destroy(nifd_class, nifd->sys_cdev.dev);
+    printk("NIFD: device_destroy return");
+
+    printk("NIFD: cdev_del start");
     cdev_del(&nifd->sys_cdev);
+    printk("NIFD: cdev_del return");
 
-    if (nifd->base_nifd)
+    if (nifd->base_nifd) {
+        printk("NIFD: cdev_del err");
         iounmap(nifd->base_nifd);
+    }
 
+    printk("NIFD: platform_set_drvdata start");
     platform_set_drvdata(pdev, NULL);
+    printk("NIFD: platform_set_drvdata return");
+
+    printk("NIFD: devm_kfree start");
     devm_kfree(&pdev->dev, nifd);
+    printk("NIFD: devm_kfree return");
 
     nifd_global = NULL;
+
+    printk("NIFD: remove all done");
 
     return 0; // Success
 }
