@@ -703,30 +703,16 @@ static int nifd_probe(struct platform_device *pdev)
     struct xocl_dev_core *core;
     int err;
 
-    printk("NIFD: nifd structs constructed");
-
-    //xocl_info(&pdev->dev, "Starting NIFD probe\n") ;
-
-    printk("NIFD: allocating vm");
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
-    printk("NIFD: vm allocated");
-
     if (!nifd)
         return -ENOMEM;
     nifd_global = nifd;
-
     // Map io memory to what was specified in the declaration
-    printk("NIFD: getting platform resource");
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-    printk("NIFD: platform resource got");
-
-    printk("NIFD: start ioremap_nocache");
     nifd->base_nifd = ioremap_nocache(res->start, res->end - res->start + 1);
-    printk("NIFD: ioremap_nocache return");
 
     if (!nifd->base_nifd)
     {
-        printk("NIFD: ioremap_nocache err");
         xocl_err(&pdev->dev, "Map iomem failed");
         return -EIO;
     }
@@ -734,118 +720,51 @@ static int nifd_probe(struct platform_device *pdev)
     // Base ICAP should map to 0x2c000
 
     // 5.2 DSA address
-    printk("NIFD: get base_icap");
     nifd->base_icap = nifd->base_nifd + 0x4000;
-    printk("NIFD: get base_icap return");
-
-    // The location of the ICAP primitive on 5.2 is at 0x20000
-    //nifd->base_icap_primitive = ioremap_nocache(0x20000, 0x20119) ;
-    //if (!nifd->base_icap_primitive)
-    //{
-    //  xocl_err(&pdev->dev, "Map primitive failed");
-    // This appears to be failing...
-    //}
-
-    printk("NIFD: start xocl_get_xdev");
     core = xocl_get_xdev(pdev);
-    printk("NIFD: xocl_get_xdev return");
-
     // Create the character device to access the ioctls
-    printk("NIFD: cdev_init start");
     cdev_init(&nifd->sys_cdev, &nifd_fops);
-    printk("NIFD: cdev_init return");
-
-    printk("NIFD: sys_cdev start");
     nifd->sys_cdev.owner = THIS_MODULE;
     nifd->instance =
         XOCL_DEV_ID(core->pdev) | platform_get_device_id(pdev)->driver_data;
     nifd->sys_cdev.dev = MKDEV(MAJOR(nifd_dev), nifd->instance);
-    printk("NIFD: sys_cdev return");
-
-    printk("NIFD: cdev_add start");
     err = cdev_add(&nifd->sys_cdev, nifd->sys_cdev.dev, 1);
-    printk("NIFD: cdev_add return");
-
-    if (err)
-    {
+    if (err) {
         xocl_err(&pdev->dev, "NIFD cdev_add failed, %d", err);
         return err;
     }
-
     // Now create the system device to create the file
-    printk("NIFD: device_create start");
     nifd->sys_device = device_create(xrt_class, // was nifd_class
-                                     &pdev->dev,
-                                     nifd->sys_cdev.dev,
-                                     NULL,
-                                     "%s%d",
-                                     platform_get_device_id(pdev)->name,
-                                     nifd->instance);
-    printk("NIFD: device_create return");
-
-    if (IS_ERR(nifd->sys_device))
-    {
+                                    &pdev->dev,
+                                    nifd->sys_cdev.dev,
+                                    NULL,
+                                    "%s%d",
+                                    platform_get_device_id(pdev)->name,
+                                    nifd->instance);
+    if (IS_ERR(nifd->sys_device)) {
         err = PTR_ERR(nifd->sys_device);
         cdev_del(&nifd->sys_cdev);
         return err;
     }
-
-    printk("NIFD: platform_set_drvdata start");
     platform_set_drvdata(pdev, nifd);
-    printk("NIFD: platform_set_drvdata return");
-
     return 0; // Success
 }
 
 static int nifd_remove(struct platform_device *pdev)
 {
     struct xocl_nifd *nifd;
-
-    printk("NIFD: remove platform_get_drvdata start");
     nifd = platform_get_drvdata(pdev);
-    printk("NIFD: platform_get_drvdata return");
-
     if (!nifd) {
-        printk("NIFD: platform_get_drvdata err");
         return -EINVAL;
     }
-
-    if (!xrt_class) {
-        printk("NIFD: xrt_class is NULL");
-        return -EINVAL;
-    }
-
-    if (!nifd->sys_cdev.dev) {
-        printk("NIFD: sys_cdev.dev is NULL");
-        return -EINVAL;
-    }
-        
-    printk("NIFD: device_destroy start");
-    // device_destroy(nifd_class, nifd->sys_cdev.dev);
     device_destroy(xrt_class, nifd->sys_cdev.dev);
-    printk("NIFD: device_destroy return");
-
-    printk("NIFD: cdev_del start");
     cdev_del(&nifd->sys_cdev);
-    printk("NIFD: cdev_del return");
-
     if (nifd->base_nifd) {
-        printk("NIFD: cdev_del err");
         iounmap(nifd->base_nifd);
     }
-
-    printk("NIFD: platform_set_drvdata start");
     platform_set_drvdata(pdev, NULL);
-    printk("NIFD: platform_set_drvdata return");
-
-    printk("NIFD: devm_kfree start");
     devm_kfree(&pdev->dev, nifd);
-    printk("NIFD: devm_kfree return");
-
     nifd_global = NULL;
-
-    printk("NIFD: remove all done");
-
     return 0; // Success
 }
 
@@ -855,57 +774,20 @@ static int nifd_remove(struct platform_device *pdev)
 int __init xocl_init_nifd(void)
 {
     int err = 0;
-    printk("NIFD: init nifd");
-
-    printk("NIFD: alloc_chrdev_region start");
     err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
-    printk("NIFD: alloc_chrdev_region return");
-
-    if (err < 0)
-    {
-        printk("NIFD: alloc_chrdev_region err");
+    if (err < 0) {
         return err;
     }
-    
-    /*
-    printk("NIFD: class_create start");
-    nifd_class = class_create(THIS_MODULE, XOCL_NIFD);
-    printk("NIFD: class_create return");
-
-    if (!nifd_class) {
-        printk("NIFD: nifd_class is NULL");
-    }
-
-    if (IS_ERR(nifd_class))
-    {
-        printk("NIFD: class_create err");
-        err = PTR_ERR(nifd_class);
-        unregister_chrdev_region(nifd_dev, 1);
-        return err;
-    }
-    */
-
-    printk("NIFD: platform_driver_register start");
     err = platform_driver_register(&nifd_driver);
-    printk("NIFD: platform_driver_register return");
-
-    if (err)
-    {
-        printk("NIFD: platform_driver_register err");
-        // class_destroy(nifd_class);
-        class_destroy(xrt_class);
+    if (err) {
         unregister_chrdev_region(nifd_dev, 1);
         return err;
     }
-
-    printk("NIFD: all done");
     return 0; // Success
 }
 
 void xocl_fini_nifd(void)
 {
     unregister_chrdev_region(nifd_dev, 1);
-    // class_destroy(nifd_class);
-    // class_destroy(xrt_class);
     platform_driver_unregister(&nifd_driver);
 }
