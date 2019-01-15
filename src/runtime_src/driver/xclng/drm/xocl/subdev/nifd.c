@@ -703,16 +703,24 @@ static int nifd_probe(struct platform_device *pdev)
     struct xocl_dev_core *core;
     int err;
 
+    printk("NIFD: probe => devm_kzalloc start");
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
-    if (!nifd)
+    printk("NIFD: probe => devm_kzalloc done");
+    if (!nifd) {
         return -ENOMEM;
+        printk("NIFD: probe => devm_kzalloc err");
+    }
     nifd_global = nifd;
     // Map io memory to what was specified in the declaration
+    printk("NIFD: probe => platform_get_resource start");
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+    printk("NIFD: probe => platform_get_resource done, ioremap_nocache start");
     nifd->base_nifd = ioremap_nocache(res->start, res->end - res->start + 1);
+    printk("NIFD: probe => ioremap_nocache done");
 
     if (!nifd->base_nifd)
     {
+        printk("NIFD: probe => ioremap_nocache err");
         xocl_err(&pdev->dev, "Map iomem failed");
         return -EIO;
     }
@@ -721,9 +729,13 @@ static int nifd_probe(struct platform_device *pdev)
 
     // 5.2 DSA address
     nifd->base_icap = nifd->base_nifd + 0x4000;
+    printk("NIFD: probe => xocl_get_xdev start");
     core = xocl_get_xdev(pdev);
+    printk("NIFD: probe => xocl_get_xdev done");
     // Create the character device to access the ioctls
+    printk("NIFD: probe => cdev_init start");
     cdev_init(&nifd->sys_cdev, &nifd_fops);
+    printk("NIFD: probe => cdev_init done");
     nifd->sys_cdev.owner = THIS_MODULE;
     nifd->instance =
         XOCL_DEV_ID(core->pdev) | platform_get_device_id(pdev)->driver_data;
@@ -734,6 +746,7 @@ static int nifd_probe(struct platform_device *pdev)
         return err;
     }
     // Now create the system device to create the file
+    printk("NIFD: probe => device_create start");
     nifd->sys_device = device_create(xrt_class, // was nifd_class
                                     &pdev->dev,
                                     nifd->sys_cdev.dev,
@@ -741,12 +754,16 @@ static int nifd_probe(struct platform_device *pdev)
                                     "%s%d",
                                     platform_get_device_id(pdev)->name,
                                     nifd->instance);
+    printk("NIFD: probe => device_create done");
     if (IS_ERR(nifd->sys_device)) {
+        printk("NIFD: probe => device_create err");
         err = PTR_ERR(nifd->sys_device);
         cdev_del(&nifd->sys_cdev);
         return err;
     }
+    printk("NIFD: probe => platform_set_drvdata start");
     platform_set_drvdata(pdev, nifd);
+    printk("NIFD: probe => platform_set_drvdata done");
     return 0; // Success
 }
 
