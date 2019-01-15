@@ -906,6 +906,6 @@ void xocl_fini_nifd(void)
 {
     unregister_chrdev_region(nifd_dev, 1);
     // class_destroy(nifd_class);
-    class_destroy(xrt_class);
+    // class_destroy(xrt_class);
     platform_driver_unregister(&nifd_driver);
 }
