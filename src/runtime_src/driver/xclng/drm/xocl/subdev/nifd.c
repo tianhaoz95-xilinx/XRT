@@ -183,7 +183,7 @@ static struct platform_driver nifd_driver = {
 
 // Global variables
 static dev_t nifd_dev;
-static struct class *nifd_class = NULL;
+// static struct class *nifd_class = NULL;
 struct xocl_nifd *nifd_global = NULL;
 
 // ---------------------------------------------
@@ -774,7 +774,7 @@ static int nifd_probe(struct platform_device *pdev)
 
     // Now create the system device to create the file
     printk("NIFD: device_create start");
-    nifd->sys_device = device_create(nifd_class,
+    nifd->sys_device = device_create(xrt_class, // was nifd_class
                                      &pdev->dev,
                                      nifd->sys_cdev.dev,
                                      NULL,
@@ -810,8 +810,8 @@ static int nifd_remove(struct platform_device *pdev)
         return -EINVAL;
     }
 
-    if (!nifd_class) {
-        printk("NIFD: nifd_class is NULL");
+    if (!xrt_class) {
+        printk("NIFD: xrt_class is NULL");
         return -EINVAL;
     }
 
@@ -821,7 +821,8 @@ static int nifd_remove(struct platform_device *pdev)
     }
         
     printk("NIFD: device_destroy start");
-    device_destroy(nifd_class, nifd->sys_cdev.dev);
+    // device_destroy(nifd_class, nifd->sys_cdev.dev);
+    device_destroy(xrt_class, nifd->sys_cdev.dev);
     printk("NIFD: device_destroy return");
 
     printk("NIFD: cdev_del start");
@@ -866,6 +867,7 @@ int __init xocl_init_nifd(void)
         return err;
     }
     
+    /*
     printk("NIFD: class_create start");
     nifd_class = class_create(THIS_MODULE, XOCL_NIFD);
     printk("NIFD: class_create return");
@@ -881,6 +883,7 @@ int __init xocl_init_nifd(void)
         unregister_chrdev_region(nifd_dev, 1);
         return err;
     }
+    */
 
     printk("NIFD: platform_driver_register start");
     err = platform_driver_register(&nifd_driver);
@@ -889,7 +892,8 @@ int __init xocl_init_nifd(void)
     if (err)
     {
         printk("NIFD: platform_driver_register err");
-        class_destroy(nifd_class);
+        // class_destroy(nifd_class);
+        class_destroy(xrt_class);
         unregister_chrdev_region(nifd_dev, 1);
         return err;
     }
@@ -901,6 +905,7 @@ int __init xocl_init_nifd(void)
 void xocl_fini_nifd(void)
 {
     unregister_chrdev_region(nifd_dev, 1);
-    class_destroy(nifd_class);
+    // class_destroy(nifd_class);
+    class_destroy(xrt_class);
     platform_driver_unregister(&nifd_driver);
 }
