@@ -183,7 +183,7 @@ static struct platform_driver nifd_driver = {
 
 // Global variables
 static dev_t nifd_dev;
-// static struct class *nifd_class = NULL;
+static struct class *nifd_class = NULL;
 struct xocl_nifd *nifd_global = NULL;
 
 // ---------------------------------------------
@@ -807,6 +807,11 @@ static int nifd_remove(struct platform_device *pdev)
 
     if (!nifd) {
         printk("NIFD: platform_get_drvdata err");
+        return -EINVAL;
+    }
+
+    if (!nifd_class) {
+        printk("NIFD: nifd_class is NULL");
         return -EINVAL;
     }
         
