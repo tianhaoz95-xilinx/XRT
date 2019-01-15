@@ -707,8 +707,8 @@ static int nifd_probe(struct platform_device *pdev)
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
     printk("NIFD: probe => devm_kzalloc done");
     if (!nifd) {
-        return -ENOMEM;
         printk("NIFD: probe => devm_kzalloc err");
+        return -ENOMEM;
     }
     nifd_global = nifd;
     // Map io memory to what was specified in the declaration
@@ -738,6 +738,10 @@ static int nifd_probe(struct platform_device *pdev)
     printk("NIFD: probe => cdev_init done");
     nifd->sys_cdev.owner = THIS_MODULE;
     printk("NIFD: probe => nifd->sys_cdev.owner set");
+    unsigned int device_id = XOCL_DEV_ID(core->pdev);
+    printk("NIFD: probe => device_id set");
+    unsigned int device_type = platform_get_device_id(pdev)->driver_data;
+    printk("NIFD: probe => device_type set");
     nifd->instance =
         XOCL_DEV_ID(core->pdev) | platform_get_device_id(pdev)->driver_data;
     printk("NIFD: probe => nifd->instance set");
