@@ -737,11 +737,16 @@ static int nifd_probe(struct platform_device *pdev)
     cdev_init(&nifd->sys_cdev, &nifd_fops);
     printk("NIFD: probe => cdev_init done");
     nifd->sys_cdev.owner = THIS_MODULE;
+    printk("NIFD: probe => nifd->sys_cdev.owner set");
     nifd->instance =
         XOCL_DEV_ID(core->pdev) | platform_get_device_id(pdev)->driver_data;
+    printk("NIFD: probe => nifd->instance set");
     nifd->sys_cdev.dev = MKDEV(MAJOR(nifd_dev), nifd->instance);
+    printk("NIFD: probe => nifd->sys_cdev.dev set, cdev_add start");
     err = cdev_add(&nifd->sys_cdev, nifd->sys_cdev.dev, 1);
+    printk("NIFD: probe => cdev_add done");
     if (err) {
+        printk("NIFD: probe => cdev_add err");
         xocl_err(&pdev->dev, "NIFD cdev_add failed, %d", err);
         return err;
     }
