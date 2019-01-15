@@ -865,6 +865,10 @@ int __init xocl_init_nifd(void)
     nifd_class = class_create(THIS_MODULE, XOCL_NIFD);
     printk("NIFD: class_create return");
 
+    if (!nifd_class) {
+        printk("NIFD: nifd_class is NULL");
+    }
+
     if (IS_ERR(nifd_class))
     {
         printk("NIFD: class_create err");
