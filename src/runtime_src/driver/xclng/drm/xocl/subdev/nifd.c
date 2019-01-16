@@ -731,6 +731,9 @@ static int nifd_probe(struct platform_device *pdev)
     nifd->base_icap = nifd->base_nifd + 0x4000;
     printk("NIFD: probe => xocl_get_xdev start");
     core = xocl_get_xdev(pdev);
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    }
     printk("NIFD: probe => xocl_get_xdev done");
     // Create the character device to access the ioctls
     printk("NIFD: probe => cdev_init start");
