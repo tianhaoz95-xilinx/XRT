@@ -16,6 +16,15 @@ void xocl_fini_nifd(void);
 
 int __init xocl_init_nifd(void);
 
+struct xocl_nifd
+{
+    void *__iomem base_nifd;
+    void *__iomem base_icap;
+    unsigned int instance;
+    struct cdev sys_cdev;
+    struct device *sys_device;
+};
+
 static const struct file_operations nifd_fops = {
     .owner = THIS_MODULE,
     .open = nifd_open,
@@ -66,6 +75,7 @@ static int nifd_probe(struct platform_device *pdev) {
 }
 
 static int nifd_remove(struct platform_device *pdev) {
+    struct xocl_dev_core *core;
     core = xocl_get_xdev(pdev);
     printk("NIFD: checking core in remove");
     if (!core) {
