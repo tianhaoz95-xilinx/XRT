@@ -43,10 +43,16 @@ static int nifd_close(struct inode *inode, struct file *file) {
 }
 
 static int nifd_probe(struct platform_device *pdev) {
+    struct xocl_nifd *nifd;
+    nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
+    if (!nifd) {
+        return -ENOMEM;
+    }
     return 0;
 }
 
 static int nifd_remove(struct platform_device *pdev) {
+    devm_kfree(&pdev->dev, nifd);
     return 0;
 }
 
