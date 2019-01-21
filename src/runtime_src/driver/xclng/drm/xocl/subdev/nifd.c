@@ -58,6 +58,7 @@ static int nifd_probe(struct platform_device *pdev) {
     struct resource *res;
     struct xocl_dev_core *core;
     int err;
+    printk("NIFD: devm_kzalloc start");
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
     if (!nifd) {
         return -ENOMEM;
