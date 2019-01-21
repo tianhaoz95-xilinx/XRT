@@ -54,6 +54,11 @@ static int nifd_probe(struct platform_device *pdev) {
         xocl_err(&pdev->dev, "Map iomem failed");
         return -EIO;
     }
+    // TODO: add icap address
+    core = xocl_get_xdev(pdev);
+    if (!core) {
+        return -1;
+    }
     return 0;
 }
 
