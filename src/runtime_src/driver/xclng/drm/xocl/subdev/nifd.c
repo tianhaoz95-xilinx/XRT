@@ -51,10 +51,21 @@ static int nifd_remove(struct platform_device *pdev) {
 }
 
 int __init xocl_init_nifd(void) {
+    int err = 0;
+    err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
+    if (err < 0) {
+        return err;
+    }
+    err = platform_driver_register(&nifd_driver);
+    if (err) {
+        unregister_chrdev_region(nifd_dev, 1);
+        return err;
+    }
     return 0;
 }
 
 void xocl_fini_nifd(void)
 {
-    return;
+    unregister_chrdev_region(nifd_dev, 1);
+    platform_driver_unregister(&nifd_driver);
 }
