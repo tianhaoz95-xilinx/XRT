@@ -48,6 +48,7 @@ static int nifd_probe(struct platform_device *pdev) {
     if (!nifd) {
         return -ENOMEM;
     }
+    res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
     return 0;
 }
 
