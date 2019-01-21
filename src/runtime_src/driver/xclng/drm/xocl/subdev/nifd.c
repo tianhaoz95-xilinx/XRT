@@ -64,10 +64,13 @@ static int nifd_probe(struct platform_device *pdev) {
 
 static int nifd_remove(struct platform_device *pdev) {
     core = xocl_get_xdev(pdev);
+    printk("NIFD: checking core in remove");
     if (!core) {
         printk("NIFD: core is null in remove");
         return -1;
     }
+    device_destroy(xrt_class, nifd->sys_cdev.dev);
+    cdev_del(&nifd->sys_cdev);
     iounmap(nifd->base_nifd);
     devm_kfree(&pdev->dev, nifd);
     return 0;
