@@ -4,7 +4,7 @@
 
 static dev_t nifd_dev;
 
-static long xvc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+static long nifd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 static int nifd_open(struct inode *inode, struct file *file);
 
@@ -47,7 +47,7 @@ static struct platform_driver nifd_driver = {
     .id_table = nifd_id_table,
 };
 
-static long xvc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
+static long nifd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
     return 0;
 }
 
