@@ -74,6 +74,25 @@ static int nifd_probe(struct platform_device *pdev) {
     if (!core) {
         return -1;
     }
+    cdev_init(&nifd->sys_cdev, &nifd_fops);
+    nifd->sys_cdev.owner = THIS_MODULE;
+    unsigned int device_id = XOCL_DEV_ID(core->pdev);
+    unsigned int device_type = platform_get_device_id(pdev)->driver_data;
+    nifd->instance = XOCL_DEV_ID(core->pdev) | platform_get_device_id(pdev)->driver_data;
+    nifd->sys_cdev.dev = MKDEV(MAJOR(nifd_dev), nifd->instance);
+    err = cdev_add(&nifd->sys_cdev, nifd->sys_cdev.dev, 1);
+    if (err) {
+        xocl_err(&pdev->dev, "NIFD cdev_add failed, %d", err);
+        return err;
+    }
+    nifd->sys_device = device_create(xrt_class,
+                                    &pdev->dev,
+                                    nifd->sys_cdev.dev,
+                                    NULL,
+                                    "%s%d",
+                                    platform_get_device_id(pdev)->name,
+                                    nifd->instance);
+    platform_set_drvdata(pdev, nifd);
     return 0;
 }
 
