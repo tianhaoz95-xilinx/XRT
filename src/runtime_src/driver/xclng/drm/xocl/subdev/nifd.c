@@ -44,6 +44,9 @@ static int nifd_close(struct inode *inode, struct file *file) {
 
 static int nifd_probe(struct platform_device *pdev) {
     struct xocl_nifd *nifd;
+    struct resource *res;
+    struct xocl_dev_core *core;
+    int err;
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
     if (!nifd) {
         return -ENOMEM;
