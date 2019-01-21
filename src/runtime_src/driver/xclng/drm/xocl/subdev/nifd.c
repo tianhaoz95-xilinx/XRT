@@ -49,10 +49,16 @@ static int nifd_probe(struct platform_device *pdev) {
         return -ENOMEM;
     }
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+    nifd->base_nifd = ioremap_nocache(res->start, res->end - res->start + 1);
+    if (!nifd->base_nifd) {
+        xocl_err(&pdev->dev, "Map iomem failed");
+        return -EIO;
+    }
     return 0;
 }
 
 static int nifd_remove(struct platform_device *pdev) {
+    iounmap(nifd->base_nifd);
     devm_kfree(&pdev->dev, nifd);
     return 0;
 }
