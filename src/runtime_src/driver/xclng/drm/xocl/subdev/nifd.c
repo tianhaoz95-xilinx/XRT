@@ -2,6 +2,8 @@
 
 #include "../xocl_drv.h"
 
+static dev_t nifd_dev;
+
 static int nifd_open(struct inode *inode, struct file *file);
 
 static int nifd_close(struct inode *inode, struct file *file);
@@ -76,6 +78,7 @@ static int nifd_probe(struct platform_device *pdev) {
 
 static int nifd_remove(struct platform_device *pdev) {
     struct xocl_dev_core *core;
+    struct xocl_nifd *nifd;
     core = xocl_get_xdev(pdev);
     printk("NIFD: checking core in remove");
     if (!core) {
