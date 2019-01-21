@@ -65,6 +65,7 @@ static int nifd_probe(struct platform_device *pdev) {
 static int nifd_remove(struct platform_device *pdev) {
     core = xocl_get_xdev(pdev);
     if (!core) {
+        printk("NIFD: core is null in remove");
         return -1;
     }
     iounmap(nifd->base_nifd);
