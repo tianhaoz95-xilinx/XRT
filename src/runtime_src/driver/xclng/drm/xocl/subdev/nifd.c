@@ -79,6 +79,7 @@ static int nifd_probe(struct platform_device *pdev) {
 static int nifd_remove(struct platform_device *pdev) {
     struct xocl_dev_core *core;
     struct xocl_nifd *nifd;
+    nifd = platform_get_drvdata(pdev);
     core = xocl_get_xdev(pdev);
     printk("NIFD: checking core in remove");
     if (!core) {
