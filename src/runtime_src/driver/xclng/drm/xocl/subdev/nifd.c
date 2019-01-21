@@ -4,6 +4,8 @@
 
 static dev_t nifd_dev;
 
+static long xvc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+
 static int nifd_open(struct inode *inode, struct file *file);
 
 static int nifd_close(struct inode *inode, struct file *file);
@@ -44,6 +46,10 @@ static struct platform_driver nifd_driver = {
     .driver = {.name = XOCL_NIFD},
     .id_table = nifd_id_table,
 };
+
+static long xvc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
+    return 0;
+}
 
 static int nifd_open(struct inode *inode, struct file *file) {
     return 0;
@@ -92,6 +98,11 @@ static int nifd_probe(struct platform_device *pdev) {
                                     "%s%d",
                                     platform_get_device_id(pdev)->name,
                                     nifd->instance);
+    if (IS_ERR(nifd->sys_device)) {
+		err = PTR_ERR(nifd->sys_device);
+		cdev_del(&nifd->sys_cdev);
+		return err;
+	}
     platform_set_drvdata(pdev, nifd);
     return 0;
 }
