@@ -131,6 +131,7 @@ enum {
 #define	XOCL_MIG		"mig" SUBDEV_SUFFIX
 #define	XOCL_XMC		"xmc" SUBDEV_SUFFIX
 #define	XOCL_DNA		"dna" SUBDEV_SUFFIX
+#define	XOCL_NIFD		"nifd" SUBDEV_SUFFIX
 enum subdev_id {
 	XOCL_SUBDEV_FEATURE_ROM,
 	XOCL_SUBDEV_MM_DMA,
@@ -147,7 +148,8 @@ enum subdev_id {
 	XOCL_SUBDEV_STR_DMA,
 	XOCL_SUBDEV_XMC,
 	XOCL_SUBDEV_DNA,
-	XOCL_SUBDEV_NUM
+	XOCL_SUBDEV_NUM,
+	XOCL_SUBDEV_NIFD,
 };
 
 #define	XOCL_RES_FEATURE_ROM				\
@@ -271,6 +273,23 @@ enum subdev_id {
 		XOCL_FIREWALL,				\
 		XOCL_RES_AF_DSA52,			\
 		ARRAY_SIZE(XOCL_RES_AF_DSA52),		\
+	}
+
+#define XOCL_RES_NIFD_MGMT                         \
+	((struct resource []) {                    \
+		{                                  \
+				.start = 0x28000,          \
+				.end = 0x2cfff,            \
+				.flags = IORESOURCE_MEM,   \
+		},                                 \
+	})
+
+#define XOCL_DEVINFO_NIFD_MGMT                   \
+	{                                         \
+			XOCL_SUBDEV_NIFD,                \
+			XOCL_NIFD,                       \
+			XOCL_RES_NIFD_MGMT,              \
+			ARRAY_SIZE(XOCL_RES_NIFD_MGMT),  \
 	}
 
 #define	XOCL_RES_XVC_PUB				\
@@ -794,6 +813,7 @@ enum subdev_id {
 			XOCL_DEVINFO_XVC_PRI,				\
 			XOCL_DEVINFO_MAILBOX_MGMT,			\
 			XOCL_DEVINFO_ICAP_MGMT,				\
+			XOCL_DEVINFO_NIFD_MGMT,				\
 		})
 
 #define	XOCL_BOARD_MGMT_XBB_DSA52					\
