@@ -139,7 +139,12 @@ static int nifd_probe(struct platform_device *pdev)
 
 static int nifd_remove(struct platform_device *pdev)
 {
+    struct xocl_dev_core *core;
     struct xocl_nifd *nifd;
+    core = xocl_get_xdev(pdev);
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    }
     nifd = platform_get_drvdata(pdev);
     if (!nifd) {
         xocl_err(&pdev->dev, "driver data is NULL");
