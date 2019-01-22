@@ -397,6 +397,15 @@ failed:
 static int xvc_remove(struct platform_device *pdev)
 {
 	struct xocl_xvc	*xvc;
+	struct xocl_dev_core *core;
+
+	core = xocl_get_xdev(pdev);
+    printk("XVC: remove => checking core right away");
+    if (!core) {
+        printk("XVC: remove => core is null");
+    } else {
+        printk("XVC: remove => core is NOT null");
+    }
 
 	xvc = platform_get_drvdata(pdev);
 	if (!xvc) {
