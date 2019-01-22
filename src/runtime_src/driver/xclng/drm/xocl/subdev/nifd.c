@@ -16,10 +16,6 @@ static int nifd_probe(struct platform_device *pdev);
 
 static int nifd_remove(struct platform_device *pdev);
 
-void xocl_fini_nifd(void);
-
-int __init xocl_init_nifd(void);
-
 struct xocl_nifd
 {
     void *__iomem base_nifd;
