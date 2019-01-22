@@ -176,12 +176,6 @@ static int nifd_remove(struct platform_device *pdev)
         printk("NIFD: remove => core is NOT null");
     }
     devm_kfree(&pdev->dev, nifd);
-    printk("NIFD: remove => checking core after devm_kfree");
-    if (!core) {
-        printk("NIFD: remove => core is null");
-    } else {
-        printk("NIFD: remove => core is NOT null");
-    }
     return 0; // Success
 }
 
