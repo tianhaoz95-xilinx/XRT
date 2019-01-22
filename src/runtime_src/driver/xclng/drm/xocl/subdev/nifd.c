@@ -228,7 +228,7 @@ static int nifd_remove(struct platform_device *pdev)
     } else {
         printk("NIFD: remove => core is NOT null");
     }
-    
+
     devm_kfree(&pdev->dev, nifd);
     return 0; // Success
 }
@@ -237,7 +237,7 @@ int __init xocl_init_nifd(void)
 {
     int err = 0;
     printk("NIFD: init => alloc_chrdev_region start");
-    err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
+    err = alloc_chrdev_region(&nifd_dev, 0, XOCL_MAX_DEVICES, XOCL_NIFD);
     printk("NIFD: init => alloc_chrdev_region done");
     if (err < 0) {
         printk("NIFD: init => alloc_chrdev_region err");
@@ -248,7 +248,7 @@ int __init xocl_init_nifd(void)
     printk("NIFD: init => platform_driver_register done");
     if (err) {
         printk("NIFD: init => platform_driver_register err");
-        unregister_chrdev_region(nifd_dev, 1);
+        unregister_chrdev_region(nifd_dev, XOCL_MAX_DEVICES);
         return err;
     }
     printk("NIFD: init => done");
@@ -257,6 +257,6 @@ int __init xocl_init_nifd(void)
 
 void xocl_fini_nifd(void)
 {
-    unregister_chrdev_region(nifd_dev, 1);
+    unregister_chrdev_region(nifd_dev, XOCL_MAX_DEVICES);
     platform_driver_unregister(&nifd_driver);
 }
