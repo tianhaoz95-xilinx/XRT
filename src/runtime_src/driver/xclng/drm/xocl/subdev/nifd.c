@@ -89,8 +89,11 @@ static int nifd_probe(struct platform_device *pdev)
     nifd->base_icap = nifd->base_nifd + 0x4000;
     printk("NIFD: probe => xocl_get_xdev start");
     core = xocl_get_xdev(pdev);
+    printk("NIFD: probe => checking core");
     if (!core) {
         printk("NIFD: probe => core is null");
+    } else {
+        printk("NIFD: probe => core is NOT null");
     }
     printk("NIFD: probe => xocl_get_xdev done");
     // Create the character device to access the ioctls
@@ -142,10 +145,20 @@ static int nifd_remove(struct platform_device *pdev)
     struct xocl_dev_core *core;
     struct xocl_nifd *nifd;
     core = xocl_get_xdev(pdev);
+    printk("NIFD: remove => checking core right away");
     if (!core) {
-        printk("NIFD: probe => core is null");
+        printk("NIFD: remove => core is null");
+    } else {
+        printk("NIFD: remove => core is NOT null");
     }
     nifd = platform_get_drvdata(pdev);
+    core = xocl_get_xdev(pdev);
+    printk("NIFD: remove => checking core after platform_get_drvdata");
+    if (!core) {
+        printk("NIFD: remove => core is null");
+    } else {
+        printk("NIFD: remove => core is NOT null");
+    }
     if (!nifd) {
         xocl_err(&pdev->dev, "driver data is NULL");
         return -EINVAL;
@@ -156,29 +169,41 @@ static int nifd_remove(struct platform_device *pdev)
         iounmap(nifd->base_nifd);
     }
     platform_set_drvdata(pdev, NULL);
+    printk("NIFD: remove => checking core after platform_set_drvdata");
+    if (!core) {
+        printk("NIFD: remove => core is null");
+    } else {
+        printk("NIFD: remove => core is NOT null");
+    }
     devm_kfree(&pdev->dev, nifd);
+    printk("NIFD: remove => checking core after devm_kfree");
+    if (!core) {
+        printk("NIFD: remove => core is null");
+    } else {
+        printk("NIFD: remove => core is NOT null");
+    }
     return 0; // Success
 }
 
 int __init xocl_init_nifd(void)
 {
     int err = 0;
-    printk("NIFD: alloc_chrdev_region start");
+    printk("NIFD: init => alloc_chrdev_region start");
     err = alloc_chrdev_region(&nifd_dev, 0, 1, XOCL_NIFD);
-    printk("NIFD: alloc_chrdev_region done");
+    printk("NIFD: init => alloc_chrdev_region done");
     if (err < 0) {
-        printk("NIFD: alloc_chrdev_region err");
+        printk("NIFD: init => alloc_chrdev_region err");
         return err;
     }
-    printk("NIFD: platform_driver_register start");
+    printk("NIFD: init => platform_driver_register start");
     err = platform_driver_register(&nifd_driver);
-    printk("NIFD: platform_driver_register done");
+    printk("NIFD: init => platform_driver_register done");
     if (err) {
-        printk("NIFD: platform_driver_register err");
+        printk("NIFD: init => platform_driver_register err");
         unregister_chrdev_region(nifd_dev, 1);
         return err;
     }
-    printk("NIFD: init done");
+    printk("NIFD: init => done");
     return 0; // Success
 }
 
