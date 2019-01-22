@@ -62,6 +62,14 @@ static int nifd_probe(struct platform_device *pdev)
     struct xocl_dev_core *core;
     int err;
 
+    core = xocl_get_xdev(pdev);
+    printk("NIFD: probe => checking core right away");
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    } else {
+        printk("NIFD: probe => core is NOT null");
+    }
+
     printk("NIFD: probe => devm_kzalloc start");
     nifd = devm_kzalloc(&pdev->dev, sizeof(*nifd), GFP_KERNEL);
     printk("NIFD: probe => devm_kzalloc done");
@@ -69,10 +77,27 @@ static int nifd_probe(struct platform_device *pdev)
         printk("NIFD: probe => devm_kzalloc err");
         return -ENOMEM;
     }
+
+    printk("NIFD: probe => checking core after devm_kzalloc");
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    } else {
+        printk("NIFD: probe => core is NOT null");
+    }
+
     // Map io memory to what was specified in the declaration
     printk("NIFD: probe => platform_get_resource start");
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
     printk("NIFD: probe => platform_get_resource done, ioremap_nocache start");
+    
+    printk("NIFD: probe => checking core after platform_get_resource");
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    } else {
+        printk("NIFD: probe => core is NOT null");
+    }
+
+
     nifd->base_nifd = ioremap_nocache(res->start, res->end - res->start + 1);
     printk("NIFD: probe => ioremap_nocache done");
 
@@ -81,6 +106,13 @@ static int nifd_probe(struct platform_device *pdev)
         printk("NIFD: probe => ioremap_nocache err");
         xocl_err(&pdev->dev, "Map iomem failed");
         return -EIO;
+    }
+
+    printk("NIFD: probe => checking core after ioremap_nocache");
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    } else {
+        printk("NIFD: probe => core is NOT null");
     }
     // Base NIFD should map to 0x28000
     // Base ICAP should map to 0x2c000
