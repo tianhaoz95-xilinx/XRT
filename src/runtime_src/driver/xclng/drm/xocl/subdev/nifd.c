@@ -78,6 +78,7 @@ static int nifd_probe(struct platform_device *pdev)
         return -ENOMEM;
     }
 
+    core = xocl_get_xdev(pdev);
     printk("NIFD: probe => checking core after devm_kzalloc");
     if (!core) {
         printk("NIFD: probe => core is null");
@@ -90,6 +91,7 @@ static int nifd_probe(struct platform_device *pdev)
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
     printk("NIFD: probe => platform_get_resource done, ioremap_nocache start");
 
+    core = xocl_get_xdev(pdev);
     printk("NIFD: probe => checking core after platform_get_resource");
     if (!core) {
         printk("NIFD: probe => core is null");
@@ -108,6 +110,7 @@ static int nifd_probe(struct platform_device *pdev)
         return -EIO;
     }
 
+    core = xocl_get_xdev(pdev);
     printk("NIFD: probe => checking core after ioremap_nocache");
     if (!core) {
         printk("NIFD: probe => core is null");
@@ -121,12 +124,15 @@ static int nifd_probe(struct platform_device *pdev)
     nifd->base_icap = nifd->base_nifd + 0x4000;
     printk("NIFD: probe => xocl_get_xdev start");
     core = xocl_get_xdev(pdev);
+
+    core = xocl_get_xdev(pdev);
     printk("NIFD: probe => checking core");
     if (!core) {
         printk("NIFD: probe => core is null");
     } else {
         printk("NIFD: probe => core is NOT null");
     }
+
     printk("NIFD: probe => xocl_get_xdev done");
     // Create the character device to access the ioctls
     printk("NIFD: probe => cdev_init start");
@@ -170,6 +176,7 @@ static int nifd_probe(struct platform_device *pdev)
     platform_set_drvdata(pdev, nifd);
     printk("NIFD: probe => platform_set_drvdata done");
 
+    core = xocl_get_xdev(pdev);
     printk("NIFD: probe => checking core at the end");
     if (!core) {
         printk("NIFD: probe => core is null");
@@ -184,6 +191,7 @@ static int nifd_remove(struct platform_device *pdev)
 {
     struct xocl_dev_core *core;
     struct xocl_nifd *nifd;
+
     core = xocl_get_xdev(pdev);
     printk("NIFD: remove => checking core right away");
     if (!core) {
@@ -191,7 +199,9 @@ static int nifd_remove(struct platform_device *pdev)
     } else {
         printk("NIFD: remove => core is NOT null");
     }
+
     nifd = platform_get_drvdata(pdev);
+
     core = xocl_get_xdev(pdev);
     printk("NIFD: remove => checking core after platform_get_drvdata");
     if (!core) {
@@ -199,6 +209,7 @@ static int nifd_remove(struct platform_device *pdev)
     } else {
         printk("NIFD: remove => core is NOT null");
     }
+
     if (!nifd) {
         xocl_err(&pdev->dev, "driver data is NULL");
         return -EINVAL;
@@ -209,12 +220,15 @@ static int nifd_remove(struct platform_device *pdev)
         iounmap(nifd->base_nifd);
     }
     platform_set_drvdata(pdev, NULL);
+
+    core = xocl_get_xdev(pdev);
     printk("NIFD: remove => checking core after platform_set_drvdata");
     if (!core) {
         printk("NIFD: remove => core is null");
     } else {
         printk("NIFD: remove => core is NOT null");
     }
+    
     devm_kfree(&pdev->dev, nifd);
     return 0; // Success
 }
