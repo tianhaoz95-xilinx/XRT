@@ -89,7 +89,7 @@ static int nifd_probe(struct platform_device *pdev)
     printk("NIFD: probe => platform_get_resource start");
     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
     printk("NIFD: probe => platform_get_resource done, ioremap_nocache start");
-    
+
     printk("NIFD: probe => checking core after platform_get_resource");
     if (!core) {
         printk("NIFD: probe => core is null");
@@ -169,6 +169,14 @@ static int nifd_probe(struct platform_device *pdev)
     printk("NIFD: probe => platform_set_drvdata start");
     platform_set_drvdata(pdev, nifd);
     printk("NIFD: probe => platform_set_drvdata done");
+
+    printk("NIFD: probe => checking core at the end");
+    if (!core) {
+        printk("NIFD: probe => core is null");
+    } else {
+        printk("NIFD: probe => core is NOT null");
+    }
+
     return 0; // Success
 }
 
