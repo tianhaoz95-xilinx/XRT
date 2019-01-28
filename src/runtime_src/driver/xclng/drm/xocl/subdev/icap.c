@@ -2189,6 +2189,13 @@ void *icap_get_axlf_section_data(struct platform_device *pdev,
 	return target;
 }
 
+static int icap_reset_nifd(struct platform_device *pdev) {
+	unsigned long base = 0x20000;
+	unsigned long offset = 0x10c;
+	reg_wr((void*)(base + offset), 0x00000004);
+	return 0;
+}
+
 /* Kernel APIs exported from this sub-device driver. */
 static struct xocl_icap_funcs icap_ops = {
 	.reset_axi_gate = platform_reset_axi_gate,
@@ -2202,6 +2209,7 @@ static struct xocl_icap_funcs icap_ops = {
 	.ocl_unlock_bitstream = icap_unlock_bitstream,
 	.parse_axlf_section = icap_parse_bitstream_axlf_section,
 	.get_axlf_section_data = icap_get_axlf_section_data,
+	.reset_nifd = icap_reset_nifd,
 };
 
 static ssize_t clock_freq_topology_show(struct device *dev,

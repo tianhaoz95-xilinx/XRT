@@ -86,6 +86,12 @@ static int bitstream_ioctl_axlf(struct xclmgmt_dev *lro, const void __user *arg)
 	return ret;
 }
 
+static int reset_nifd(struct xclmgmt_dev *lro) {
+	int ret = 0;
+	ret = xocl_reset_nifd(lro);
+	return ret;
+}
+
 long mgmt_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	struct xclmgmt_dev *lro = (struct xclmgmt_dev *)filp->private_data;
@@ -137,6 +143,8 @@ long mgmt_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case XCLMGMT_IOCERRINFO:
 		result = err_info_ioctl(lro, (void __user *)arg);
 		break;
+	case XCLMGMT_RESETNIFD:
+		result = reset_nifd(lro);
 	default:
 		printk(KERN_DEBUG "MGMT default IOCTL request %u\n", cmd & 0xff);
 		result = -ENOTTY;
