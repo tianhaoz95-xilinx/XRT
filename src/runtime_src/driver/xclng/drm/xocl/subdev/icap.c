@@ -2190,6 +2190,7 @@ void *icap_get_axlf_section_data(struct platform_device *pdev,
 }
 
 static int icap_reset_nifd(struct platform_device *pdev) {
+	printk('NIFD ICAP: icap_reset_nifd is being called');
 	unsigned long base = 0x20000;
 	unsigned long offset = 0x10c;
 	reg_wr((void*)(base + offset), 0x00000004);
