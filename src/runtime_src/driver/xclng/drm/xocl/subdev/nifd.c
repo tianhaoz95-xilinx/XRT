@@ -82,6 +82,8 @@ static dev_t nifd_dev;
 
 struct xocl_nifd *nifd_global;
 
+struct xocl_dev_core *core_global;
+
 /**
  * helper functions
  */
@@ -162,6 +164,7 @@ static long switch_icap_to_nifd(void)
 
 static long switch_icap_to_pr(void) {
     write_icap_mux_register(0x0);
+    xocl_reset_nifd(core_global);
     return 0;
 }
 
@@ -408,6 +411,7 @@ static int nifd_probe(struct platform_device *pdev)
 	} else {
 		printk("NIFD: probe => core is NOT null");
 	}
+    core_global = core;
 
 	cdev_init(&nifd->sys_cdev, &nifd_fops);
 	nifd->sys_cdev.owner = THIS_MODULE;
