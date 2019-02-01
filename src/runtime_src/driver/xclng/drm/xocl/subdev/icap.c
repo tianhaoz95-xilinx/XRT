@@ -2192,7 +2192,14 @@ void *icap_get_axlf_section_data(struct platform_device *pdev,
 static int icap_reset_nifd(struct platform_device *pdev) {
 	printk("NIFD ICAP: icap_reset_nifd is being called");
 	struct icap *icap = platform_get_drvdata(pdev);
+	reg_wr(&icap->icap_regs->ir_cr, 0x8);
+	ndelay(2000);
+	reg_wr(&icap->icap_regs->ir_cr, 0x0);
+	ndelay(2000);
 	reg_wr(&icap->icap_regs->ir_cr, 0x4);
+	ndelay(2000);
+	reg_wr(&icap->icap_regs->ir_cr, 0x0);
+	ndelay(2000);
 	return 0;
 }
 
