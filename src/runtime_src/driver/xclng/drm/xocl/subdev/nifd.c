@@ -165,6 +165,7 @@ static long switch_icap_to_nifd(void)
 static long switch_icap_to_pr(void) {
     write_icap_mux_register(0x0);
     xocl_reset_nifd(core_global);
+    ndelay(2000);
     return 0;
 }
 
