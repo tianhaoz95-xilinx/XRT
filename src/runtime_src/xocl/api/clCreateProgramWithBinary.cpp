@@ -41,6 +41,7 @@ static void
 loadProgramBinary(xocl::program* program, xocl::device* device)
 {
   device->load_program(program);
+  std::cout << "DEBUG: device->load_program finisehes" << std::endl;
 }
 
 } //namespace
@@ -131,7 +132,9 @@ clCreateProgramWithBinary(cl_context                      context ,
   for (auto device : xocl::get_range(device_list,device_list+num_devices)) {
     try {
       loadProgramBinary(program.get(),xocl(device));
+      std::cout << "DEBUG: loadProgramBinary done" << std::endl;
       xocl::assign(&binary_status[idx++],CL_SUCCESS);
+      std::cout << "DEBUG: assign done" << std::endl;
     }
     catch (const xocl::error& ex) {
       xocl::assign(&binary_status[idx],CL_INVALID_BINARY);
