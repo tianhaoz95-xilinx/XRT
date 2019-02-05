@@ -386,6 +386,7 @@ public:
     if (!m_ops->mLoadXclBin)
       return hal::operations_result<int>();
 
+    std::cout << "DEBUG: before calling the raw loading of the xclbin in the hal ops" << std::endl;
     hal::operations_result<int> ret = m_ops->mLoadXclBin(m_handle,xclbin);
     std::cout << "DEBUG: the raw loading of the xclbin through hal is finished" << std::endl;
     // refresh device info on successful load

@@ -880,7 +880,9 @@ int xocl::XOCLShim::xclLoadXclBin(const xclBin *buffer)
     const char *xclbininmemory = reinterpret_cast<char*> (const_cast<xclBin*> (buffer));
 
     if (!memcmp(xclbininmemory, "xclbin2", 8)) {
+        std::cout << "DEBUG: before calling xcl loading axlf internal function" << std::endl;
         ret = xclLoadAxlf(reinterpret_cast<const axlf*>(xclbininmemory));
+        std::cout << "DEBUG: after calling xcl loading axlf internal function" << std::endl;
         if (ret != 0) {
             if (ret == -EINVAL) {
                 std::stringstream output;
