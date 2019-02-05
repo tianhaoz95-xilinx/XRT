@@ -40,6 +40,7 @@ namespace {
 static void
 loadProgramBinary(xocl::program* program, xocl::device* device)
 {
+  std::cout << "DEBUG: device->load_program about to start" << std::endl;
   device->load_program(program);
   std::cout << "DEBUG: device->load_program finisehes" << std::endl;
 }
