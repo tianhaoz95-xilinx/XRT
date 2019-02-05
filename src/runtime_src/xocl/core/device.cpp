@@ -1069,7 +1069,7 @@ load_program(program* program)
 
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  std::cout << "DEBUG: " << std::endl;
+
 
   if (m_active && !std::getenv("XCL_CONFORMANCE"))
     throw xocl::error(CL_OUT_OF_RESOURCES,"program already loaded on device");
@@ -1077,26 +1077,18 @@ load_program(program* program)
   m_xclbin = program->get_xclbin(this);
   auto binary = m_xclbin.binary(); // ::xclbin::binary
 
-  std::cout << "DEBUG: " << std::endl;
+
 
   // Kernel debug is enabled based on if there is debug_data in the
   // binary it does not have sdaccel.ini attribute. If there is
   // debug_data then make sure xdp is loaded
   if (binary.debug_data().first) {
     xrt::hal::load_xdp();
-    std::cout << "DEBUG: " << std::endl;
   }
-
-  std::cout << "DEBUG: " << std::endl;
 
   xocl::debug::reset(m_xclbin);
 
-  std::cout << "DEBUG: " << std::endl;
-
-
   xocl::profile::reset(m_xclbin);
-
-  std::cout << "DEBUG: " << std::endl;
 
   // validatate target binary for target device and set the xrt device
   // according to target binary this is likely temp code that is
@@ -1104,16 +1096,15 @@ load_program(program* program)
   // up front
   set_xrt_device(m_xclbin);
 
-  std::cout << "DEBUG: " << std::endl;
+
 
   auto binary_data = binary.binary_data();
   auto binary_size = binary_data.second - binary_data.first;
   if (binary_size == 0) {
-    std::cout << "DEBUG: " << std::endl;
     return;
   }
 
-  std::cout << "DEBUG: " << std::endl;
+
   // get the xrt device.  guaranteed to be the final device after
   // above call to setXrtDevice
   auto xdevice = get_xrt_device();
@@ -1192,6 +1183,7 @@ load_program(program* program)
       add_cu(std::make_unique<compute_unit>(symbol,inst.name,this));
     }
   }
+  std::cout << "DEBUG: cu added" << std::endl;
 
   m_active = program;
   profile::add_to_active_devices(get_unique_name());
