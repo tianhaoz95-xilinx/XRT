@@ -1153,6 +1153,7 @@ load_program(program* program)
         throw xocl::error(CL_INVALID_PROGRAM,"Reclocking failed");
     }
   }
+  std::cout << "DEBUG: frequency scaling done" << std::endl;
 
 
   // programmming
@@ -1176,12 +1177,15 @@ load_program(program* program)
       throw xocl::error(CL_INVALID_PROGRAM,"Failed to load xclbin.");
     }
   }
+  std::cout << "DEBUG: programming done" << std::endl;
 
   // Add compute units for each kernel in the program.
   // Note, that conformance mode renames the kernels in the xclbin
   // so iterating kernel names and looking up symbols from kernels
   // isn't possible, we *must* iterator symbols explicitly
   clear_cus();
+  std::cout << "DEBUG: cus cleared" << std::endl;
+
   m_cu_memidx = -2;
   for (auto symbol : m_xclbin.kernel_symbols()) {
     for (auto& inst : symbol->instances) {
