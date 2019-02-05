@@ -915,6 +915,8 @@ int xocl::XOCLShim::xclLoadXclBin(const xclBin *buffer)
     }
 
     mIsDebugIpLayoutRead = false;
+    
+    std::cout << "the shim function for loading the xclbin returned" << std::endl;
 
     return ret;
 }
