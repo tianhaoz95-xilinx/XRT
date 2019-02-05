@@ -1186,7 +1186,11 @@ load_program(program* program)
   std::cout << "DEBUG: cu added" << std::endl;
 
   m_active = program;
+
+  std::cout << "DEBUG: before add_to_active_devices" << std::endl;
   profile::add_to_active_devices(get_unique_name());
+
+  std::cout << "DEBUG: before init schedule" << std::endl;
 
   init_scheduler(this);
 
