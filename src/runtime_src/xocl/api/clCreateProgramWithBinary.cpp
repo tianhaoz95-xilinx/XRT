@@ -109,6 +109,7 @@ clCreateProgramWithBinary(cl_context                      context ,
                           cl_int *                        binary_status,
                           cl_int *                        errcode_ret )
 {
+  std::cout << "DEBUG: enter the cl create program with binary api" << std::endl;
   validOrError(context,num_devices,device_list,lengths,binaries,binary_status,errcode_ret);
                
   // Flushing device trace (not done on first call to program with binary)
