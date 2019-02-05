@@ -1063,6 +1063,7 @@ void
 device::
 load_program(program* program)
 {
+  std::cout << "DEBUG: starting loading program" << std::endl;
   if (m_parent.get())
     throw xocl::error(CL_OUT_OF_RESOURCES,"cannot load program on sub device");
 
