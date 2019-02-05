@@ -2242,6 +2242,20 @@ void *icap_get_axlf_section_data(struct platform_device *pdev,
 	return target;
 }
 
+static int icap_reset_nifd(struct platform_device *pdev) {
+	printk("NIFD ICAP: icap_reset_nifd is being called");
+	struct icap *icap = platform_get_drvdata(pdev);
+	reg_wr(&icap->icap_regs->ir_cr, 0x8);
+	ndelay(2000);
+	reg_wr(&icap->icap_regs->ir_cr, 0x0);
+	ndelay(2000);
+	reg_wr(&icap->icap_regs->ir_cr, 0x4);
+	ndelay(2000);
+	reg_wr(&icap->icap_regs->ir_cr, 0x0);
+	ndelay(2000);
+	return 0;
+}
+
 /* Kernel APIs exported from this sub-device driver. */
 static struct xocl_icap_funcs icap_ops = {
 	.reset_axi_gate = platform_reset_axi_gate,
@@ -2255,6 +2269,7 @@ static struct xocl_icap_funcs icap_ops = {
 	.ocl_unlock_bitstream = icap_unlock_bitstream,
 	.parse_axlf_section = icap_parse_bitstream_axlf_section,
 	.get_axlf_section_data = icap_get_axlf_section_data,
+	.reset_nifd = icap_reset_nifd,
 };
 
 static ssize_t clock_freq_topology_show(struct device *dev,

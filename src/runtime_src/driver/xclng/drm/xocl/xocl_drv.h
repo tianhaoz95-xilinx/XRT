@@ -594,6 +594,7 @@ struct xocl_icap_funcs {
 		const void __user *arg, enum axlf_section_kind kind);
 	void* (*get_axlf_section_data)(struct platform_device *pdev,
 		enum axlf_section_kind kind);
+	int (*reset_nifd)(struct platform_device *pdev);
 };
 #define	ICAP_DEV(xdev)	SUBDEV(xdev, XOCL_SUBDEV_ICAP).pldev
 #define	ICAP_OPS(xdev)							\
@@ -618,6 +619,8 @@ struct xocl_icap_funcs {
 	ICAP_OPS(xdev)->ocl_unlock_bitstream(ICAP_DEV(xdev), uuid, pid)
 #define	xocl_icap_parse_axlf_section(xdev, xclbin, kind)				\
 	ICAP_OPS(xdev)->parse_axlf_section(ICAP_DEV(xdev), xclbin, kind)
+#define xocl_reset_nifd(xdev)								\
+	ICAP_OPS(xdev)->reset_nifd(ICAP_DEV(xdev))
 
 #define	xocl_icap_get_axlf_section_data(xdev, kind)				\
 	ICAP_OPS(xdev)->get_axlf_section_data(ICAP_DEV(xdev), kind)
