@@ -1172,6 +1172,8 @@ load_program(program* program)
   profile::add_to_active_devices(get_unique_name());
 
   init_scheduler(this);
+
+  std::cout << "DEBUG: loading program at device level finishes" << std::endl;
 }
 
 void
