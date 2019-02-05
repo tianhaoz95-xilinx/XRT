@@ -161,6 +161,7 @@ init_scheduler(xocl::device* device)
   size_t regmap_size = xclbin.kernel_max_regmap_size();
   XOCL_DEBUG(std::cout,"max regmap size:",regmap_size,"\n");
 
+  std::cout << "DEBUG: before calling scheduler init" << std::endl;
   xrt::scheduler::init(device->get_xrt_device()
                  ,regmap_size
                  ,cu_isr
@@ -168,6 +169,7 @@ init_scheduler(xocl::device* device)
                  ,cu_shift // cu_offset in lsh value
                  ,cu_base_offset
                  ,cu2addr);
+  std::cout << "DEBUG: scheduler init returned" << std::endl;
 }
 
 
