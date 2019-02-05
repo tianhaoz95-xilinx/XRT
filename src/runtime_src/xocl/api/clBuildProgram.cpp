@@ -101,6 +101,7 @@ clBuildProgram(cl_program            program ,
                void (CL_CALLBACK *   pfn_notify)(cl_program program, void *  user_data ),
                void *                user_data )
 {
+  std::cout << "DEBUG: cl build program is called" << std::endl;
   validOrError(program,num_devices,device_list,options,pfn_notify,user_data);
 
   // If device_list is a NULL value, the prorgam executable is built
