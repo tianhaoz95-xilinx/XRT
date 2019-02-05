@@ -393,6 +393,7 @@ public:
     if (!ret.get())
       getDeviceInfo(&m_devinfo);
 
+    std::cout << "DEBUG: ocl level load xclbin function returns" << std::endl;
     return ret;
   }
 
