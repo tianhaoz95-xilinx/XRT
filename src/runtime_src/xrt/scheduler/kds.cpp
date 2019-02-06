@@ -245,6 +245,8 @@ init(xrt::device* device, size_t regmap_size, bool cu_isr, size_t num_cus, size_
     cudma = false;
   }
 
+  std::cout << "DEBUG: messages sent to cudma" << std:endl;
+
   auto configure = std::make_shared<command>(device,ERT_CONFIGURE);
   auto epacket = xrt::command_cast<ert_configure_cmd*>(configure.get());
 
