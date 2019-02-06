@@ -232,6 +232,7 @@ stop()
 void
 init(xrt::device* device, size_t regmap_size, bool cu_isr, size_t num_cus, size_t cu_offset, size_t cu_base_addr, const std::vector<uint32_t>& cu_addr_map)
 {
+  std::cout << "DEBUG: kds init start" << std:endl;
   auto cudma = xrt::config::get_ert_cudma();
   if (cudma && regmap_size>=0x210 && is_51_dsa(device)) {
     // bug in cudma.c HW
@@ -262,6 +263,7 @@ init(xrt::device* device, size_t regmap_size, bool cu_isr, size_t num_cus, size_
 
   // cu addr map
   std::copy(cu_addr_map.begin(), cu_addr_map.end(), epacket->data);
+  std::cout << "DEBUG: done cu addr mapping" << std:endl;
 
   // payload size
   epacket->count = 5 + cu_addr_map.size();

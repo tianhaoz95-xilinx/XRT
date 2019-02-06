@@ -141,7 +141,7 @@ schedule(const command_type& cmd)
 void
 init(xrt::device* device, size_t regmap_size, bool cu_isr, size_t num_cus, size_t cu_offset, size_t cu_base_addr, const std::vector<uint32_t>& cu_addr_map)
 {
-  std::cout << "DEBUG: " << std::endl;
+  std::cout << "DEBUG: init start" << std::endl;
   emu_50_disable_kds(device);
   //  aws_50_disable_kds(device);
 
