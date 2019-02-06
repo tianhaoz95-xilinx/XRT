@@ -42,7 +42,7 @@ namespace hal {
 
 // Opaque types for various buffer objects
 struct buffer_object {};
-struct exec_buffer_object {};
+struct exec_buffer_object {0};
 
 using BufferObjectHandle = std::shared_ptr<buffer_object>;
 using ExecBufferObjectHandle = std::shared_ptr<exec_buffer_object>;
