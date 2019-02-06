@@ -274,9 +274,12 @@ init(xrt::device* device, size_t regmap_size, bool cu_isr, size_t num_cus, size_
   auto exec_bo = configure->get_exec_bo();
   device->exec_buf(exec_bo);
 
+  std::cout << "DEBUG: waiting for command to complete" << std::endl;
   // wait for command to complete
   while (!is_command_done(configure))
     while (device->exec_wait(1000)==0) ;
+  
+  std::cout << "DEBUG: command completed" << std::endl;
 
   // create a submitted command queue for this device if necessary,
   // create a command monitor thread for this device if necessary
