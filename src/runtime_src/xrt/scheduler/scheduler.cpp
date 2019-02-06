@@ -141,13 +141,19 @@ schedule(const command_type& cmd)
 void
 init(xrt::device* device, size_t regmap_size, bool cu_isr, size_t num_cus, size_t cu_offset, size_t cu_base_addr, const std::vector<uint32_t>& cu_addr_map)
 {
+  std::cout << "DEBUG: " << std::endl;
   emu_50_disable_kds(device);
   //  aws_50_disable_kds(device);
 
-  if (kds_enabled())
+  if (kds_enabled()) {
+    std::cout << "DEBUG: kds enabled init start" << std::endl;
     kds::init(device,regmap_size,cu_isr,num_cus,cu_offset,cu_base_addr,cu_addr_map);
-  else
+    std::cout << "DEBUG: kds enabled init done" << std::endl;
+  } else {
+    std::cout << "DEBUG: kds not enabled init start" << std::endl;
     sws::init(device,cu_addr_map);
+    std::cout << "DEBUG: kds not enabled init done" << std::endl;
+  }
 }
 
 }} // scheduler,xrt
