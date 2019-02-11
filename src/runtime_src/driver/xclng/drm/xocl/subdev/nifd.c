@@ -409,7 +409,7 @@ static int nifd_probe(struct platform_device *pdev)
 	struct FeatureRomHeader rom;
 	xocl_get_raw_header(core, &rom);
 	printk("NIFD: nifd_exist_in_feature_rom, FeatureBitMap: %lx", (long)rom.FeatureBitMap);
-	nifd_valid = false;
+	nifd_valid = true;
 
 	cdev_init(&nifd->sys_cdev, &nifd_fops);
 	nifd->sys_cdev.owner = THIS_MODULE;
