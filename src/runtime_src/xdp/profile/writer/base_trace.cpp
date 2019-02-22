@@ -344,4 +344,22 @@ namespace xdp {
     }
   }
 
+  void TraceWriterI::writeCustomEvent(double timestamp, const std::string& name, int uid, 
+                                        enum CustomEventType type, const std::string& tooltip) {
+    std::string event_type = "Unknown";
+    switch (type) {
+      case CustomEventType::END:
+        event_type = "END";
+        break;
+      case CustomEventType::START:
+        event_type = "START";
+        break;
+      default:
+        break;
+    }
+    writeTableRowStart(getStream());
+    writeTableCells(getStream(), timestamp, "UserMarker|" + name, event_type, tooltip);
+    writeTableRowEnd(getStream());
+  }
+
 } // xdp

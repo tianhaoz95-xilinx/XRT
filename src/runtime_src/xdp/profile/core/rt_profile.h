@@ -149,6 +149,8 @@ namespace xdp {
     void logDeviceCounters(std::string deviceName, std::string binaryName, xclPerfMonType type,
         xclCounterResults& counterResults, uint64_t timeNsec, bool firstReadAfterProgram);
 
+    void logCustomEvent(const std::string& name, int uid, CustomEventType type, const std::string& tooltip);
+
   private:
     int& mProfileFlags;
     int mFileFlags; // Which files we want to write out

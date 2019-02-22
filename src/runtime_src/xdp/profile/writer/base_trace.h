@@ -67,6 +67,15 @@ namespace xdp {
 	    void writeDeviceTrace(const TraceParser::TraceResultVector &resultVector,
 	          std::string deviceName, std::string binaryName);
 
+      /**
+       * write custom events
+       */
+      void writeCustomEvent(double time /**< [in] timestamp of the event*/,
+                            const std::string& name /**< [in] name of the event, user defined */,
+                            int uid /**< [in] a unique id to identify concurrent events of the same name */,
+                            enum CustomEventType type /**< [in] type of the event, defined in xclperf.h */,
+                            const std::string& tooltip /**< [in] extra information to be shown in tooltips */);
+
     protected:
       // Variadic args function to take n number of any type of args and
       // stream it to a file

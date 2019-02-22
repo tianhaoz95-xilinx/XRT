@@ -520,6 +520,8 @@ namespace xdp {
     resultVector.clear();
   }
 
+  void TraceLogger::logCustomEvent(const std::string& name, int uid, CustomEventType type, const std::string& tooltip) {
 
+  }
 
 } // xdp

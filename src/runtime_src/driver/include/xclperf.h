@@ -445,4 +445,16 @@ typedef struct {
 } xclDebugProfileDeviceInfo;
 
 
+/**
+ * The types for custom event logging
+ */
+
+enum CustomEventType {
+  START,
+  END,
+  MARKER
+};
+
+/** End of the types for custom event logging */
+
 #endif

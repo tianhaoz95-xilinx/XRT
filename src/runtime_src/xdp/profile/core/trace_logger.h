@@ -83,6 +83,8 @@ namespace xdp {
     void logDeviceTrace(std::string deviceName, std::string binaryName, xclPerfMonType type,
         xclTraceResultsVector& traceVector);
 
+    void logCustomEvent(const std::string& name, int uid, CustomEventType type, const std::string& tooltip);
+
   public:
     // Timeline trace writers
     void writeTimelineTrace(double traceTime, const char* functionName,

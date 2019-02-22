@@ -393,4 +393,8 @@ namespace xdp {
     mLogger->logDeviceTrace(deviceName, binaryName, type, traceVector);
   }
 
+  void RTProfile::logCustomEvent(const std::string& name, int uid, CustomEventType type, const std::string& tooltip) {
+    mLogger->logCustomEvent(name, uid, type, tooltip);
+  }
+
 } // xdp
