@@ -64,6 +64,16 @@ public:
      */
     unsigned get_device_ip_config_by_type(xclPerfMonType type, const std::string& device_name);
 
+    /**
+     * The get_device_ip_name_by_index API will retrieve the device specified
+     * with given index with the given type. 
+     * 
+     * \note
+     * Internally, this API will call the
+     * get_device_ip_config_by_type API. In the future, only the performance
+     * issue in the get_device_ip_config_by_type API needs to be solved, and this
+     * API will get an upgrade for free.
+     */
     std::string get_device_ip_name_by_index(xclPerfMonType type, unsigned index, const std::string& device_name);
 
     unsigned get_device_kernel_clock_frequency(const std::string& deviceName);
@@ -90,6 +100,17 @@ public:
      */
     RTUtil::e_flow_mode get_flow_mode() {return flow_mode;}
 
+    /**
+     * The get_trace_time API returns the host unix timestamp in nano 
+     * seconds for correlating the trace events.
+     * 
+     * TODO:
+     * This API really has nothing to do with any one instance of the 
+     * ProfilePlatform class. However, for now, this class will only appear
+     * once inside the profile core, so it will be okay. If, in the future
+     * multiple instances of the ProfilePlatform class is allowed, and has
+     * a corresponding use case. This method should be changed to static.
+     */
     double get_trace_time();
 
 private:
