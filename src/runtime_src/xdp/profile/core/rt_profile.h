@@ -20,6 +20,7 @@
 #include "rt_util.h"
 #include "driver/include/xclperf.h"
 #include "xdp/profile/plugin/base_plugin.h"
+#include "xdp/profile/device/profile_platform.h"
 
 #include <set>
 #include <vector>
@@ -161,6 +162,10 @@ namespace xdp {
     SummaryWriter* mWriter;
     std::vector<std::string> mDeviceNames;
     std::shared_ptr<XDPPluginI> mPluginHandle;
+
+  public:
+    std::shared_ptr<ProfilePlatform> mProfilePlatform; /**< the profile platform is currently
+                                                            made public to avoid duplicated API */
   };
 
 } // xdp

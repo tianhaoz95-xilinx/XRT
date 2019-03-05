@@ -816,6 +816,12 @@ public:
     return m_hal->getSysfsPath(subdev, entry);
   }
 
+  void*
+  getHalDeviceHandle()
+  {
+    return m_hal->getHalDeviceHandle();
+  }
+
   /**
    * Explicitly schedule an arbitrary function on the device's
    * task queue.

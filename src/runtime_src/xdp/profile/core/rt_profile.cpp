@@ -51,6 +51,12 @@ namespace xdp {
     // Logger & writer
     mLogger = new TraceLogger(mProfileCounters, mTraceParser, mPluginHandle.get());
     mWriter = new SummaryWriter(mProfileCounters, mTraceParser, mPluginHandle.get());
+
+    /**
+     * Populate the profile platform, and when this is ready, 
+     * the rest can be removed.
+     */
+    mProfilePlatform = std::shared_ptr<ProfilePlatform>(new ProfilePlatform());
   }
 
   RTProfile::~RTProfile()

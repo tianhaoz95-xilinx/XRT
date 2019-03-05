@@ -52,6 +52,16 @@ namespace xdp {
     Plugin = std::make_shared<XoclPlugin>(getclPlatformID());
     // Share ownership to ensure correct order of destruction
     ProfileMgr = std::make_unique<RTProfile>(ProfileFlags, Plugin);
+
+    /**
+     * Populate the core profile platform with devices
+     */
+    for (auto device_id : Platform->get_device_range()) {
+      std::string deviceName = device_id->get_unique_name();
+      xclDeviceHandle handle = device_id->get_xrt_device()->getHalDeviceHandle();
+      ProfileMgr->mProfilePlatform->register_device_with_name(handle, deviceName);
+    }
+
     startProfiling();
   }
 
