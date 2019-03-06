@@ -45,7 +45,7 @@ namespace xdp {
   // **************************************************************************
   class TraceLogger {
   public:
-    TraceLogger(ProfileCounters* profileCounters, TraceParser * TraceParserHandle, XDPPluginI* Plugin);
+    TraceLogger(ProfileCounters* profileCounters, TraceParser * TraceParserHandle, XDPPluginI* Plugin, shared_ptr<ProfilePlatform> profile_platform);
     ~TraceLogger();
 
   public:
@@ -132,6 +132,8 @@ namespace xdp {
   private:
       TraceParser * mTraceParserHandle;
       XDPPluginI * mPluginHandle;
+
+      shared_ptr<ProfilePlatform> mProfilePlatform;
   };
 
 } // xdp

@@ -125,7 +125,8 @@ public:
     size_t get_timestamp();
 
 private:
-    std::vector<debug_ip_data> ip_list; /**< list of debug and profile IPs found */
+    std::vector<debug_ip_data> ip_list; /**< list of debug and profile IPs found (will be deleted soon) */
+    std::map<std::string, std::vector<debug_ip_data>> layout_history; /**< a history of the xclbins loaded onto the device */
     xclDeviceHandle device_handle; /**< the hal handle for all the device operations */
     xclDeviceInfo2 device_info; /**< the hal device information */
 };
