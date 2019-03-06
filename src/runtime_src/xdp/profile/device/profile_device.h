@@ -116,7 +116,7 @@ public:
      * The get_max_bandwith_in_mdps API should retrieve the 
      * theoretical maximum memory bandwidth of the device.
      */
-    double get_max_bandwith_in_mdps();
+    double get_max_bandwith_in_mbps();
 
     /**
      * The get_timestamp API should retrievfe the on-device
@@ -125,8 +125,17 @@ public:
     size_t get_timestamp();
 
 private:
-    std::vector<debug_ip_data> ip_list; /**< list of debug and profile IPs found (will be deleted soon) */
+    std::vector<debug_ip_data> ip_list; /**< list of debug and profile IPs found */
+
+    /**
+     * As discussed with Jason, it's cleaner to dump the information per xclbin loading
+     * It can be:
+     *  1. dump multiple csv files and leave the concat to sdx_analyze
+     *  2. keep separate file streams and append to the event file stream
+     * so this map might not be needed.
+     */
     std::map<std::string, std::vector<debug_ip_data>> layout_history; /**< a history of the xclbins loaded onto the device */
+
     xclDeviceHandle device_handle; /**< the hal handle for all the device operations */
     xclDeviceInfo2 device_info; /**< the hal device information */
 };
