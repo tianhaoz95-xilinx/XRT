@@ -125,14 +125,21 @@ public:
     size_t get_timestamp();
 
     void start_counters(xclPerfMonType type);
+
     void stop_counters(xclPerfMonType type);
+
     xclCounterResults read_counters(xclPerfMonType type);
 
     void reset_trace_fifo(xclPerfMonType type);
+
     void clock_training(xclPerfMonType type);
+
     unsigned get_trace_count(xclPerfMonType type);
+
     void start_trace(xclPerfMonType type, uint32_t trigger);
+
     void stop_trace(xclPerfMonType type);
+    
     std::vector<xclTraceResults> collect_trace(xclPerfMonType type);
 
 private:
