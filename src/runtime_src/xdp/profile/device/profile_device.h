@@ -124,6 +124,17 @@ public:
      */
     size_t get_timestamp();
 
+    void start_counters(xclPerfMonType type);
+    void stop_counters(xclPerfMonType type);
+    void read_counters(xclPerfMonType type, xclCounterResults& counterResults);
+
+    void reset_trace_fifo(xclPerfMonType type);
+    void clock_training(xclPerfMonType type);
+    unsigned get_trace_count(xclPerfMonType type);
+    void start_trace(xclPerfMonType type, uint32_t startTrigger);
+    void stop_trace(xclPerfMonType type);
+    std::vector<xclTraceResults> read_trace(xclPerfMonType type);
+
 private:
     std::vector<debug_ip_data> ip_list; /**< list of debug and profile IPs found */
 

@@ -64,7 +64,8 @@ namespace xdp {
 
     // In HW emulation, use estimated host timestamp based on device clock cycles (in psec from HAL)
     if (mPluginHandle->getFlowMode() == xdp::RTUtil::HW_EM) {
-      size_t dts = mPluginHandle->getDeviceTimestamp(deviceName);
+      // size_t dts = mPluginHandle->getDeviceTimestamp(deviceName);
+      size_t dts = mProfilePlatform->get_device_timestamp(deviceName);
       deviceTimeStamp = dts / 1000000.0;
     }
 
