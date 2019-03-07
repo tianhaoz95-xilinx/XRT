@@ -42,6 +42,12 @@ namespace xdp {
     mStallTraceOption(RTUtil::STALL_TRACE_OFF),
     mPluginHandle(Plugin)
   {
+    /**
+     * Populate the profile platform, and when this is ready, 
+     * the rest can be removed.
+     */
+    mProfilePlatform = std::shared_ptr<ProfilePlatform>(new ProfilePlatform());
+    
     // Profile counters (to store counter results)
     mProfileCounters = new ProfileCounters();
 
@@ -49,14 +55,8 @@ namespace xdp {
     mTraceParser = new TraceParser(mPluginHandle.get());
 
     // Logger & writer
-    mLogger = new TraceLogger(mProfileCounters, mTraceParser, mPluginHandle.get());
+    mLogger = new TraceLogger(mProfileCounters, mTraceParser, mPluginHandle.get(), mProfilePlatform);
     mWriter = new SummaryWriter(mProfileCounters, mTraceParser, mPluginHandle.get());
-
-    /**
-     * Populate the profile platform, and when this is ready, 
-     * the rest can be removed.
-     */
-    mProfilePlatform = std::shared_ptr<ProfilePlatform>(new ProfilePlatform());
   }
 
   RTProfile::~RTProfile()

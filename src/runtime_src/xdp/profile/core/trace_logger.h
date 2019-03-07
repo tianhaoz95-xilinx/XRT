@@ -22,12 +22,14 @@
 #include "xdp/profile/collection/results.h"
 #include "xdp/profile/plugin/base_plugin.h"
 #include "xdp/profile/device/trace_parser.h"
+#include "xdp/profile/device/profile_platform.h"
 
 #include "driver/include/xclperf.h"
 
 #include <limits>
 #include <cstdint>
 #include <string>
+#include <memory>
 #include <mutex>
 #include <map>
 #include <queue>
@@ -45,7 +47,7 @@ namespace xdp {
   // **************************************************************************
   class TraceLogger {
   public:
-    TraceLogger(ProfileCounters* profileCounters, TraceParser * TraceParserHandle, XDPPluginI* Plugin, shared_ptr<ProfilePlatform> profile_platform);
+    TraceLogger(ProfileCounters* profileCounters, TraceParser * TraceParserHandle, XDPPluginI* Plugin, std::shared_ptr<ProfilePlatform> profile_platform);
     ~TraceLogger();
 
   public:
@@ -133,7 +135,7 @@ namespace xdp {
       TraceParser * mTraceParserHandle;
       XDPPluginI * mPluginHandle;
 
-      shared_ptr<ProfilePlatform> mProfilePlatform;
+      std::shared_ptr<ProfilePlatform> mProfilePlatform;
   };
 
 } // xdp

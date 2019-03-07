@@ -35,7 +35,7 @@ namespace xdp {
   // ************************
   // XDP Profile TraceLogger Class
   // ************************
-  TraceLogger::TraceLogger(ProfileCounters* profileCounters, TraceParser * TraceParserHandle, XDPPluginI* Plugin, shared_ptr<ProfilePlatform> profile_platform)
+  TraceLogger::TraceLogger(ProfileCounters* profileCounters, TraceParser * TraceParserHandle, XDPPluginI* Plugin, std::shared_ptr<ProfilePlatform> profile_platform)
   : mMigrateMemCalls(0),
     mCurrentContextId(0),
     mProfileCounters(profileCounters),

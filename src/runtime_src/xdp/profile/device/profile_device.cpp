@@ -120,10 +120,10 @@ std::string ProfileDevice::get_ip_name_by_index(xclPerfMonType type, unsigned in
 }
 
 unsigned ProfileDevice::get_kernel_clock_frequency() {
-    return 0.;
+    return 0;
 }
 
-double ProfileDevice::get_max_bandwith_in_mdps() {
+double ProfileDevice::get_max_bandwith_in_mbps() {
     return 0.0;
 }
 
