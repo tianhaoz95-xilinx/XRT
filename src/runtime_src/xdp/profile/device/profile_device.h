@@ -133,7 +133,7 @@ public:
     unsigned get_trace_count(xclPerfMonType type);
     void start_trace(xclPerfMonType type, uint32_t startTrigger);
     void stop_trace(xclPerfMonType type);
-    std::vector<xclTraceResults> read_trace(xclPerfMonType type);
+    std::vector<xclTraceResults> collect_trace(xclPerfMonType type);
 
 private:
     std::vector<debug_ip_data> ip_list; /**< list of debug and profile IPs found */
