@@ -276,20 +276,20 @@ namespace xocl {
 
       // If applicable, read the upper 32-bits of the 64-bit debug counters
       if (mPerfmonProperties[s] & XSPM_64BIT_PROPERTY_MASK) {
-	for (int c = 0 ; c < XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT ; ++c) {
-	  xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
-		  baseAddress[s] + spm_upper_offsets[c],
-		  &temp[c], 4) ;
-	}
-	aCounterResults->WriteBytes[s]    = ((uint64_t)(temp[0])) << 32 ;
-	aCounterResults->WriteTranx[s]    = ((uint64_t)(temp[1])) << 32 ;
-	aCounterResults->ReadBytes[s]     = ((uint64_t)(temp[2])) << 32 ;
-	aCounterResults->ReadTranx[s]     = ((uint64_t)(temp[3])) << 32 ;
-	aCounterResults->OutStandCnts[s]  = ((uint64_t)(temp[4])) << 32 ;
-	aCounterResults->LastWriteAddr[s] = ((uint64_t)(temp[5])) << 32 ;
-	aCounterResults->LastWriteData[s] = ((uint64_t)(temp[6])) << 32 ;
-	aCounterResults->LastReadAddr[s]  = ((uint64_t)(temp[7])) << 32 ;
-	aCounterResults->LastReadData[s]  = ((uint64_t)(temp[8])) << 32 ;
+	      for (int c = 0 ; c < XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT ; ++c) {
+	        xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
+            baseAddress[s] + spm_upper_offsets[c],
+            &temp[c], 4) ;
+	      }
+        aCounterResults->WriteBytes[s]    = ((uint64_t)(temp[0])) << 32 ;
+        aCounterResults->WriteTranx[s]    = ((uint64_t)(temp[1])) << 32 ;
+        aCounterResults->ReadBytes[s]     = ((uint64_t)(temp[2])) << 32 ;
+        aCounterResults->ReadTranx[s]     = ((uint64_t)(temp[3])) << 32 ;
+        aCounterResults->OutStandCnts[s]  = ((uint64_t)(temp[4])) << 32 ;
+        aCounterResults->LastWriteAddr[s] = ((uint64_t)(temp[5])) << 32 ;
+        aCounterResults->LastWriteData[s] = ((uint64_t)(temp[6])) << 32 ;
+        aCounterResults->LastReadAddr[s]  = ((uint64_t)(temp[7])) << 32 ;
+        aCounterResults->LastReadData[s]  = ((uint64_t)(temp[8])) << 32 ;
       }
 
       for (int c=0; c < XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT; c++)
@@ -305,6 +305,21 @@ namespace xocl {
       aCounterResults->LastReadAddr[s]  |= temp[7];
       aCounterResults->LastReadData[s]  |= temp[8];
     }
+
+    // should be deleted once the debugging is done
+    for (uint32_t s=0; s < numSlots; s++) {
+      std::cout << "p2p debugging message: " << std::endl;
+      std::cout << "WriteBytes: " << aCounterResults->WriteBytes[s]    << std::endl;
+      std::cout << "WriteTranx: " << aCounterResults->WriteTranx[s]    << std::endl;
+      std::cout << "ReadBytes: " << aCounterResults->ReadBytes[s]     << std::endl;
+      std::cout << "ReadTranx: " << aCounterResults->ReadTranx[s]     << std::endl;
+      std::cout << "OutStandCnts: " << aCounterResults->OutStandCnts[s]  << std::endl;
+      std::cout << "LastWriteAddr: " << aCounterResults->LastWriteAddr[s] << std::endl;
+      std::cout << "LastWriteData: " << aCounterResults->LastWriteData[s] << std::endl;
+      std::cout << "LastReadAddr: " << aCounterResults->LastReadAddr[s]  << std::endl;
+      std::cout << "LastReadData: " << aCounterResults->LastReadData[s]  << std::endl;
+    }
+
     return size;
   }
 
