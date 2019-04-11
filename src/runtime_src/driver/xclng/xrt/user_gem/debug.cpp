@@ -274,6 +274,8 @@ namespace xocl {
                     baseAddress[s] + XSPM_SAMPLE_OFFSET,
                     &sampleInterval, 4);
 
+      std::cout << "Debugging SPM, reading register from offset: 0x" << std::hex << baseAddress[s] << std::dec << std::endl;
+
       // If applicable, read the upper 32-bits of the 64-bit debug counters
       if (mPerfmonProperties[s] & XSPM_64BIT_PROPERTY_MASK) {
 	      for (int c = 0 ; c < XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT ; ++c) {
@@ -525,10 +527,10 @@ size_t xclDebugReadIPStatus(xclDeviceHandle handle, xclDebugReadType type, void*
       return drv->xclDebugReadCounters(reinterpret_cast<xclDebugCountersResults*>(debugResults));
     case XCL_DEBUG_READ_TYPE_SAM :
       return drv->xclDebugReadAccelMonitorCounters(reinterpret_cast<xclAccelMonitorCounterResults*>(debugResults));
-  case XCL_DEBUG_READ_TYPE_SSPM :
-    return drv->xclDebugReadStreamingCounters(reinterpret_cast<xclStreamingDebugCountersResults*>(debugResults));
-  case XCL_DEBUG_READ_TYPE_SPC:
-    return drv->xclDebugReadStreamingCheckers(reinterpret_cast<xclDebugStreamingCheckersResults*>(debugResults));
+    case XCL_DEBUG_READ_TYPE_SSPM :
+      return drv->xclDebugReadStreamingCounters(reinterpret_cast<xclStreamingDebugCountersResults*>(debugResults));
+    case XCL_DEBUG_READ_TYPE_SPC:
+      return drv->xclDebugReadStreamingCheckers(reinterpret_cast<xclDebugStreamingCheckersResults*>(debugResults));
     default:
       ;
   };
