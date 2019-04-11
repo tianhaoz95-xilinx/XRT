@@ -263,7 +263,7 @@ namespace xocl {
     uint64_t baseAddress[XSPM_MAX_NUMBER_SLOTS];
     uint32_t numSlots = getIPCountAddrNames(AXI_MM_MONITOR, baseAddress, nullptr, mPerfmonProperties, nullptr, nullptr, XSPM_MAX_NUMBER_SLOTS);
 
-    uint32_t temp[XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT];
+    uint64_t temp[XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT];
 
     aCounterResults->NumSlots = numSlots;
     snprintf(aCounterResults->DevUserName, 256, "%s", mDevUserName.c_str());
@@ -274,6 +274,7 @@ namespace xocl {
                     baseAddress[s] + XSPM_SAMPLE_OFFSET,
                     &sampleInterval, 4);
 
+      // get rid of this once debugging is done
       std::cout << "Debugging SPM, reading register from offset: 0x" << std::hex << baseAddress[s] << std::dec << std::endl;
 
       // If applicable, read the upper 32-bits of the 64-bit debug counters
