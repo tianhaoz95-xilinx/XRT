@@ -263,7 +263,7 @@ namespace xocl {
     uint64_t baseAddress[XSPM_MAX_NUMBER_SLOTS];
     uint32_t numSlots = getIPCountAddrNames(AXI_MM_MONITOR, baseAddress, nullptr, mPerfmonProperties, nullptr, nullptr, XSPM_MAX_NUMBER_SLOTS);
 
-    uint64_t temp[XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT];
+    uint32_t temp[XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT];
 
     aCounterResults->NumSlots = numSlots;
     snprintf(aCounterResults->DevUserName, 256, "%s", mDevUserName.c_str());
