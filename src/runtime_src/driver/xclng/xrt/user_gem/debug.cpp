@@ -279,6 +279,10 @@ namespace xocl {
 
       // If applicable, read the upper 32-bits of the 64-bit debug counters
       if (mPerfmonProperties[s] & XSPM_64BIT_PROPERTY_MASK) {
+        
+        // get rid of this once the debugging is done
+        std::cout << "Debugging SPM, This is a 64 bit counter" << std::endl;
+
 	      for (int c = 0 ; c < XSPM_DEBUG_SAMPLE_COUNTERS_PER_SLOT ; ++c) {
 	        xclRead(XCL_ADDR_SPACE_DEVICE_PERFMON,
             baseAddress[s] + spm_upper_offsets[c],
@@ -311,7 +315,7 @@ namespace xocl {
 
     // should be deleted once the debugging is done
     for (uint32_t s=0; s < numSlots; s++) {
-      std::cout << "p2p debugging message: " << std::endl;
+      std::cout << "Debugging SPM: " << std::endl;
       std::cout << "WriteBytes: " << aCounterResults->WriteBytes[s]    << std::endl;
       std::cout << "WriteTranx: " << aCounterResults->WriteTranx[s]    << std::endl;
       std::cout << "ReadBytes: " << aCounterResults->ReadBytes[s]     << std::endl;
