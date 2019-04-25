@@ -269,7 +269,7 @@ namespace xdp {
     unsigned numStreamSlots = 0;
     unsigned numShellSlots = 0;
     if (applicationProfilingOn() && ProfileMgr->isDeviceProfileOn()) {
-      for (auto device_id : Platform->get_device_range()) {
+      for (auto device_id : get_unique_root_device_range(Platform.get())) {
         std::string deviceName = device_id->get_unique_name();
         numStallSlots  += xoclp::platform::get_profile_num_slots(getclPlatformID(),
                                                                  deviceName,
@@ -333,7 +333,7 @@ namespace xdp {
     // Platform/device info
     //
     auto platform = getclPlatformID();
-    for (auto device_id : platform->get_device_range()) {
+    for (auto device_id : get_unique_root_device_range(platform)) {
       std::string deviceName = device_id->get_unique_name();
       trs << "Device," << deviceName << ",begin\n";
 
@@ -353,7 +353,7 @@ namespace xdp {
     //
     // Unused CUs
     //
-    for (auto device_id : platform->get_device_range()) {
+    for (auto device_id : get_unique_root_device_range(platform)) {
       std::string deviceName = device_id->get_unique_name();
 
       for (auto& cu : xocl::xocl(device_id)->get_cus()) {

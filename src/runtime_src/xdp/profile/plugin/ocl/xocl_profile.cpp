@@ -155,15 +155,15 @@ unsigned
 get_profile_num_slots(key k, std::string& deviceName, xclPerfMonType type)
 {
   auto platform = k;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     std::string currDeviceName = device->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0)
       return device::getProfileNumSlots(device, type);
   }
 
   // If not found, return the timestamp of the first device
-  auto device = platform->get_device_range()[0];
-  return device::getProfileNumSlots(device.get(), type);
+  auto device = get_unique_root_device_range(platform)[0];
+  return device::getProfileNumSlots(device, type);
 }
 
 cl_int
@@ -171,15 +171,15 @@ get_profile_slot_name(key k, std::string& deviceName, xclPerfMonType type,
 		              unsigned slotnum, std::string& slotName)
 {
   auto platform = k;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     std::string currDeviceName = device->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0)
       return device::getProfileSlotName(device, type, slotnum, slotName);
   }
 
   // If not found, return the timestamp of the first device
-  auto device = platform->get_device_range()[0];
-  return device::getProfileSlotName(device.get(), type, slotnum, slotName);
+  auto device = get_unique_root_device_range(platform)[0];
+  return device::getProfileSlotName(device, type, slotnum, slotName);
 }
 
 unsigned
@@ -187,22 +187,22 @@ get_profile_slot_properties(key k, std::string& deviceName, xclPerfMonType type,
 		              unsigned slotnum)
 {
   auto platform = k;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     std::string currDeviceName = device->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0)
       return device::getProfileSlotProperties(device, type, slotnum);
   }
 
   // If not found, return the timestamp of the first device
-  auto device = platform->get_device_range()[0];
-  return device::getProfileSlotProperties(device.get(), type, slotnum);
+  auto device = get_unique_root_device_range(platform)[0];
+  return device::getProfileSlotProperties(device, type, slotnum);
 }
 
 cl_int
 get_profile_kernel_name(key k, const std::string& deviceName, const std::string& cuName, std::string& kernelName)
 {
   auto platform = k;  
-  for (auto device_id : platform->get_device_range()) {
+  for (auto device_id : get_unique_root_device_range(platform)) {
     std::string currDeviceName = device_id->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0) {
       for (auto& cu : xocl::xocl(device_id)->get_cus()) {
@@ -222,7 +222,7 @@ write_host_event(key k, xclPerfMonEventType type, xclPerfMonEventID id)
   XDP_LOG("Writing host event: type = %d, ID = %d\n", type, id);
 
   auto platform = k;
-  for (auto device : platform->get_device_range())
+  for (auto device : get_unique_root_device_range(platform))
     device::writeHostEvent(device, type, id);
   return 0;
 }
@@ -231,15 +231,15 @@ size_t
 get_device_timestamp(key k, std::string& deviceName)
 {
   auto platform = k;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     std::string currDeviceName = device->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0)
       return device::getTimestamp(device);
   }
 
   // If not found, return the timestamp of the first device
-  auto device = platform->get_device_range()[0];
-  return device::getTimestamp(device.get());
+  auto device = get_unique_root_device_range(platform)[0];
+  return device::getTimestamp(device);
 }
 
 double 
@@ -248,7 +248,7 @@ get_device_max_read(key k)
   auto platform = k;
   // TODO: this is not specific to a device; is that needed?
   double maxRead = 0.0;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     double currMaxRead = device::getMaxRead(device);
     maxRead = std::max(currMaxRead,maxRead);
   }
@@ -261,7 +261,7 @@ get_device_max_write(key k)
   auto platform = k;
   // TODO: this is not specific to a device; is that needed?
   double maxWrite = 0.0;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     double currMaxWrite = device::getMaxWrite(device);
     maxWrite = std::max(currMaxWrite,maxWrite);
   }
@@ -275,7 +275,7 @@ start_device_trace(key k, xclPerfMonType type, size_t numComputeUnits)
   auto mgr = OCLProfiler::Instance()->getProfileManager();
   cl_int ret = CL_SUCCESS;
   if (isValidPerfMonTypeTrace(k,type)) {
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       ret |= device::startTrace(device,type, numComputeUnits);
     }
     mgr->setLoggingTrace(type, false);
@@ -289,7 +289,7 @@ stop_device_trace(key k, xclPerfMonType type)
   auto platform = k;
   cl_int ret = CL_SUCCESS;
   if (isValidPerfMonTypeTrace(k,type)) {
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       ret |= device::stopTrace(device,type);
     }
   }
@@ -315,7 +315,7 @@ log_device_trace(key k, xclPerfMonType type, bool forceRead)
 
     // Iterate over all devices
     mgr->setLoggingTrace(type, true);
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       if (device->is_active())
         ret |= device::logTrace(device,type, forceRead);
     }
@@ -330,7 +330,7 @@ start_device_counters(key k, xclPerfMonType type)
   auto platform = k;
   cl_int ret = CL_SUCCESS;
   if (isValidPerfMonTypeCounters(k,type)) {
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       ret |= device::startCounters(device,type);
       // TODO: figure out why we need to start trace here for counters to always work (12/14/15, schuey)
       ret |= device::startTrace(device,type, 1);
@@ -345,7 +345,7 @@ stop_device_counters(key k, xclPerfMonType type)
   auto platform = k;
   cl_int ret = CL_SUCCESS;
   if (isValidPerfMonTypeCounters(k,type)) {
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       ret |= device::stopCounters(device,type);
     }
   }
@@ -359,7 +359,7 @@ log_device_counters(key k, xclPerfMonType type, bool firstReadAfterProgram,
   auto platform = k;
   cl_int ret = CL_SUCCESS;
   if (isValidPerfMonTypeCounters(k,type)) {
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       if (device->is_active())
         ret |= device::logCounters(device,type, firstReadAfterProgram, forceRead);
     }
@@ -371,7 +371,7 @@ unsigned int
 get_ddr_bank_count(key k, const std::string& deviceName)
 {
   auto platform = k;
-  for (auto device : platform->get_device_range()) {
+  for (auto device : get_unique_root_device_range(platform)) {
     std::string currDeviceName = device->get_unique_name();
     if (currDeviceName.compare(deviceName) == 0)
       return device->get_ddr_bank_count();
@@ -401,7 +401,7 @@ is_ap_ctrl_chain(key k, const std::string& deviceName, const std::string& cu)
 {
   auto platform = k;
   if (platform) {
-    for (auto device : platform->get_device_range()) {
+    for (auto device : get_unique_root_device_range(platform)) {
       std::string currDeviceName = device->get_unique_name();
       if (currDeviceName.compare(deviceName) == 0)
         return device::isAPCtrlChain(device, cu);
@@ -433,7 +433,7 @@ cl_int
 setProfileNumSlots(key k, xclPerfMonType type, unsigned numSlots)
 {
   auto device = k;
-  device->get_xrt_device()->setProfilingSlots(type, numSlots);
+  device->get_root_device()->get_xrt_device()->setProfilingSlots(type, numSlots);
   return CL_SUCCESS;
 }
 
@@ -441,7 +441,7 @@ unsigned
 getProfileNumSlots(key k, xclPerfMonType type)
 {
   auto device = k;
-  return device->get_xrt_device()->getProfilingSlots(type).get();
+  return device->get_root_device()->get_xrt_device()->getProfilingSlots(type).get();
 }
 
 cl_int
@@ -450,7 +450,7 @@ getProfileSlotName(key k, xclPerfMonType type, unsigned slotnum,
 {
   auto device = k;
   char name[128];
-  device->get_xrt_device()->getProfilingSlotName(type, slotnum, name, 128);
+  device->get_root_device()->get_xrt_device()->getProfilingSlotName(type, slotnum, name, 128);
   slotName = name;
   return CL_SUCCESS;
 }
@@ -459,7 +459,7 @@ unsigned
 getProfileSlotProperties(key k, xclPerfMonType type, unsigned slotnum)
 {
   auto device = k;
-  return device->get_xrt_device()->getProfilingSlotProperties(type, slotnum).get();
+  return device->get_root_device()->get_xrt_device()->getProfilingSlotProperties(type, slotnum).get();
 }
 
 cl_int 
@@ -472,7 +472,7 @@ writeHostEvent(key k, xclPerfMonEventType type, xclPerfMonEventID id)
   //std::string name = device->get_name();
   //if (name.find("zcu102") != std::string::npos) {
   //  XDP_LOG("  Writing host event to %s\n", name.c_str());
-    device->get_xrt_device()->writeHostEvent(type, id);
+    device->get_root_device()->get_xrt_device()->writeHostEvent(type, id);
   //}
   return CL_SUCCESS;
 }
@@ -481,7 +481,7 @@ cl_int
 startTrace(key k, xclPerfMonType type, size_t numComputeUnits)
 {
   auto device = k;
-  auto xdevice = device->get_xrt_device();
+  auto xdevice = device->get_root_device()->get_xrt_device();
   auto data = get_data(k);
   auto profiler = OCLProfiler::Instance();
   auto profileMgr = profiler->getProfileManager();
@@ -522,7 +522,7 @@ cl_int
 stopTrace(key k, xclPerfMonType type)
 {
   auto device = k;
-  device->get_xrt_device()->stopTrace(type);
+  device->get_root_device()->get_xrt_device()->stopTrace(type);
   return CL_SUCCESS;
 }
 
@@ -530,21 +530,21 @@ size_t
 getTimestamp(key k)
 {
   auto device = k;
-  return device->get_xrt_device()->getDeviceTime().get();
+  return device->get_root_device()->get_xrt_device()->getDeviceTime().get();
 }
 
 double 
 getMaxRead(key k)
 {
   auto device = k;
-  return device->get_xrt_device()->getDeviceMaxRead().get();
+  return device->get_root_device()->get_xrt_device()->getDeviceMaxRead().get();
 }
 
 double 
 getMaxWrite(key k)
 {
   auto device = k;
-  return device->get_xrt_device()->getDeviceMaxWrite().get();
+  return device->get_root_device()->get_xrt_device()->getDeviceMaxWrite().get();
 }
 
 cl_int 
@@ -552,7 +552,7 @@ startCounters(key k, xclPerfMonType type)
 {
   auto data = get_data(k);
   auto device = k;
-  auto xdevice = device->get_xrt_device();
+  auto xdevice = device->get_root_device()->get_xrt_device();
 
   data->mPerformingFlush = false;
 
@@ -571,7 +571,7 @@ cl_int
 stopCounters(key k, xclPerfMonType type)
 {
   auto device = k;
-  device->get_xrt_device()->stopCounters(type);
+  device->get_root_device()->get_xrt_device()->stopCounters(type);
   return CL_SUCCESS;
 }
 
@@ -580,7 +580,7 @@ logTrace(key k, xclPerfMonType type, bool forceRead)
 {
   auto data = get_data(k);
   auto device = k;
-  auto xdevice = device->get_xrt_device();
+  auto xdevice = device->get_root_device()->get_xrt_device();
 
   // Do clock training if enough time has passed
   // NOTE: once we start flushing FIFOs, we stop all training (no longer needed)
@@ -639,7 +639,7 @@ logCounters(key k, xclPerfMonType type, bool firstReadAfterProgram, bool forceRe
 {
   auto data = get_data(k);
   auto device = k;
-  auto xdevice = device->get_xrt_device();
+  auto xdevice = device->get_root_device()->get_xrt_device();
 
   //if (data->mPerformingFlush)
   //  return CL_SUCCESS;
@@ -678,7 +678,7 @@ cl_int
 debugReadIPStatus(key k, xclDebugReadType type, void* aDebugResults)
 {
   auto device = k;
-  auto xdevice = device->get_xrt_device();
+  auto xdevice = device->get_root_device()->get_xrt_device();
   //warning : reading from the accelerator device only
   //read the device profile
   xdevice->debugReadIPStatus(type, aDebugResults);

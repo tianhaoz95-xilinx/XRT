@@ -27,6 +27,8 @@
 
 #include "xdp/profile/core/rt_util.h"
 
+#include "xdp/util/device_conversion.h"
+
 // Use this class to build plugins. All XDP plugins should support
 // these functions for proper reporting.
 

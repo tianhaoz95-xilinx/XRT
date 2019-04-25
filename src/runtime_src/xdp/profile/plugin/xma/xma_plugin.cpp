@@ -106,7 +106,7 @@ namespace xdp {
     auto platform = xdp::RTSingleton::Instance()->getcl_platform_id();
 
     // Traverse all devices in this platform
-    for (auto device_id : platform->get_device_range()) {
+    for (auto device_id : get_unique_root_device_range(platform)) {
       std::string deviceName = device_id->get_unique_name();
 
       // Get execution time for this device
@@ -121,7 +121,7 @@ namespace xdp {
     auto platform = xdp::RTSingleton::Instance()->getcl_platform_id();
 
     // Traverse all devices in this platform
-    for (auto device_id : platform->get_device_range()) {
+    for (auto device_id : get_unique_root_device_range(platform)) {
       std::string deviceName = device_id->get_unique_name();
 
       // Traverse all CUs on current device
@@ -141,7 +141,7 @@ namespace xdp {
     auto platform = xdp::RTSingleton::Instance()->getcl_platform_id();
 
     // Traverse all devices in this platform
-    for (auto device_id : platform->get_device_range()) {
+    for (auto device_id : get_unique_root_device_range(platform)) {
       std::string deviceName = device_id->get_unique_name();
 
       // Traverse all CUs on current device
